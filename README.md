@@ -71,7 +71,7 @@ Each application tracks:
 
 I applied to dozens of positions over several months while tracking everything in a spreadsheet. At some point I wanted to know: what's my actual interview rate? Which CV version performs better? Where do I lose processes?
 
-Applyd is the tool I built to answer those questions. It's a single HTML file because that's the simplest thing that could possibly work — and simplicity is a feature.
+Applyd is the tool I built to answer those questions — in collaboration with [Claude](https://claude.ai) by Anthropic, without writing a single line of code manually. It's a single HTML file because that's the simplest thing that could possibly work — and simplicity is a feature.
 
 ---
 

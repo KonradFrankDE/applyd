@@ -2,7 +2,7 @@
 
 **A data-driven job application tracker. One HTML file. No account, no server, no tracking.**
 
-Built during 63 real applications. Because spreadsheets don't tell you your interview rate.
+Built during dozens of real applications. Because spreadsheets don't tell you your interview rate.
 
 → **[Download applyd.html](https://github.com/KonradFrankDE/applyd/raw/main/applyd.html)** and open it in your browser. That's it.
 
@@ -69,7 +69,7 @@ Each application tracks:
 
 ## Background
 
-I applied to 63 positions over several months while tracking everything in a spreadsheet. At some point I wanted to know: what's my actual interview rate? Which CV version performs better? Where do I lose processes?
+I applied to dozens of positions over several months while tracking everything in a spreadsheet. At some point I wanted to know: what's my actual interview rate? Which CV version performs better? Where do I lose processes?
 
 Applyd is the tool I built to answer those questions. It's a single HTML file because that's the simplest thing that could possibly work — and simplicity is a feature.
 

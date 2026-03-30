@@ -9,6 +9,7 @@
 <meta property="og:description" content="Track your applications. Measure what matters. One HTML file, no server needed.">
 <meta property="og:url" content="https://konradfrankde.github.io/applyd/">
 <meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzBkMGYxNCIvPgogIDx0ZXh0IHg9IjE2IiB5PSIyMSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9InN5c3RlbS11aSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjEzIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGY5ZWY4IiBsZXR0ZXItc3BhY2luZz0iLTEiPi8vLzwvdGV4dD4KPC9zdmc+">
 <meta name="twitter:card" content="summary_large_image">
 <style>
 :root {
@@ -651,6 +652,94 @@ footer {
   .mockup-table-header span:nth-child(n+4),
   .mockup-table-row span:nth-child(n+4) { display: none; }
 }
+
+  /* ── CAROUSEL ── */
+  .carousel-section {
+    padding: 0 0 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .carousel-wrap {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+    background: var(--surface);
+  }
+
+  .carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .carousel-slide {
+    flex: 0 0 100%;
+    position: relative;
+  }
+
+  .carousel-slide img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .carousel-caption {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 12px 20px;
+    background: linear-gradient(transparent, rgba(13,15,20,0.9));
+    font-size: 13px;
+    color: var(--text2);
+    letter-spacing: 0.04em;
+  }
+
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(13,15,20,0.7);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-size: 24px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    backdrop-filter: blur(4px);
+    line-height: 1;
+  }
+
+  .carousel-btn:hover { background: rgba(79,158,248,0.2); border-color: var(--accent); }
+  .carousel-prev { left: 16px; }
+  .carousel-next { right: 16px; }
+
+  .carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .carousel-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border2);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    padding: 0;
+  }
+
+  .carousel-dot.active {
+    background: var(--accent);
+    transform: scale(1.2);
+  }
+
 </style>
 </head>
 <body>
@@ -704,82 +793,55 @@ footer {
   </div>
 </section>
 
-<!-- ── MOCKUP ── -->
-<div class="mockup-wrap reveal">
-  <div class="mockup">
-    <div class="mockup-bar">
-      <div class="mockup-dots"><span></span><span></span><span></span></div>
-      <div class="mockup-title">/// Applyd</div>
-    </div>
-    <div class="mockup-tabs">
-      <div class="mockup-tab active">Dashboard</div>
-      <div class="mockup-tab" data-de="Bewerbungen" data-en="Applications">Applications</div>
-      <div class="mockup-tab" data-de="+ Eintrag" data-en="+ New Entry">+ New Entry</div>
-      <div class="mockup-tab" data-de="Einstellungen" data-en="Settings">Settings</div>
-    </div>
-    <div class="mockup-body">
-      <div class="mockup-kpis">
-        <div class="mockup-kpi">
-          <div class="mockup-kpi-label" data-de="Gesamt" data-en="Total">Total</div>
-          <div class="mockup-kpi-val">47</div>
-          <div class="mockup-kpi-sub" data-de="12 aktiv" data-en="12 active">12 active</div>
-        </div>
-        <div class="mockup-kpi">
-          <div class="mockup-kpi-label" data-de="Rückmeldungen" data-en="Responses">Responses</div>
-          <div class="mockup-kpi-val" style="color:var(--green)">74%</div>
-          <div class="mockup-kpi-sub">Ø 8d · Med. 5d</div>
-        </div>
-        <div class="mockup-kpi">
-          <div class="mockup-kpi-label" data-de="Gesprächsrate" data-en="Interview Rate">Interview Rate</div>
-          <div class="mockup-kpi-val" style="color:var(--yellow)">31%</div>
-          <div class="mockup-kpi-sub" data-de="14 mit ≥1 Gespräch" data-en="14 with ≥1 interview">14 with ≥1 interview</div>
-        </div>
-        <div class="mockup-kpi">
-          <div class="mockup-kpi-label" data-de="Ghosting" data-en="Ghosting">Ghosting</div>
-          <div class="mockup-kpi-val" style="color:var(--red)">17%</div>
-          <div class="mockup-kpi-sub" data-de="2 ohne Reaktion" data-en="2 without response">2 without response</div>
-        </div>
-        <div class="mockup-kpi">
-          <div class="mockup-kpi-label" data-de="Frequenz" data-en="Frequency">Frequency</div>
-          <div class="mockup-kpi-val" style="color:#06b6d4">2.1<span style="font-size:14px;font-weight:400">/w</span></div>
-          <div class="mockup-kpi-sub" data-de="↑12% aktuell" data-en="↑12% recently">↑12% recently</div>
+<!-- ── CAROUSEL ── -->
+<div class="carousel-section reveal">
+  <div class="carousel-wrap">
+    <div class="carousel-track" id="carouselTrack">
+      <div class="carousel-slide">
+        <img src="screenshots/screen_01.png" alt="Dashboard — KPIs & Active Applications" loading="lazy">
+        <div class="carousel-caption">
+          <span class="carousel-cap-de" data-de="Dashboard — KPIs & Aktive Bewerbungen">Dashboard — KPIs & Aktive Bewerbungen</span>
+          <span class="carousel-cap-en" data-en="Dashboard — KPIs & Active Applications" style="display:none">Dashboard — KPIs & Active Applications</span>
         </div>
       </div>
-      <div class="mockup-table">
-        <div class="mockup-table-header">
-          <span data-de="Stelle" data-en="Position">Position</span>
-          <span data-de="Unternehmen" data-en="Company">Company</span>
-          <span data-de="Status" data-en="Status">Status</span>
-          <span data-de="Wartezeit" data-en="Waiting">Waiting</span>
-          <span data-de="Stufe" data-en="Stage">Stage</span>
+      <div class="carousel-slide">
+        <img src="screenshots/screen_02.png" alt="Analytics — Funnel & Charts" loading="lazy">
+        <div class="carousel-caption">
+          <span class="carousel-cap-de" data-de="Analytics — Trichter & Auswertungen">Analytics — Trichter & Auswertungen</span>
+          <span class="carousel-cap-en" data-en="Analytics — Funnel & Charts" style="display:none">Analytics — Funnel & Charts</span>
         </div>
-        <div class="mockup-table-row">
-          <span style="font-weight:600">Head of Engineering</span>
-          <span style="color:var(--text2)">Acme GmbH</span>
-          <span><span class="mockup-pill pill-yellow" data-de="Gespräch" data-en="Interviewing">Interviewing</span></span>
-          <span><span class="mockup-timer" style="background:rgba(245,200,66,0.12);color:var(--yellow)">18d</span></span>
-          <span style="color:var(--text2);font-size:11px" data-de="2. Gespräch" data-en="2nd Interview">2nd Interview</span>
+      </div>
+      <div class="carousel-slide">
+        <img src="screenshots/screen_03.png" alt="Applications — full overview" loading="lazy">
+        <div class="carousel-caption">
+          <span class="carousel-cap-de" data-de="Bewerbungsübersicht — alle Einträge">Bewerbungsübersicht — alle Einträge</span>
+          <span class="carousel-cap-en" data-en="Applications — full overview" style="display:none">Applications — full overview</span>
         </div>
-        <div class="mockup-table-row">
-          <span style="font-weight:600">VP Engineering</span>
-          <span style="color:var(--text2)">Scale Corp</span>
-          <span><span class="mockup-pill pill-blue" data-de="Warten" data-en="Waiting">Waiting</span></span>
-          <span><span class="mockup-timer" style="background:rgba(79,158,248,0.12);color:var(--accent)">5d</span></span>
-          <span style="color:var(--text3);font-size:11px">—</span>
+      </div>
+      <div class="carousel-slide">
+        <img src="screenshots/screen_04.png" alt="Detail view — Interview history" loading="lazy">
+        <div class="carousel-caption">
+          <span class="carousel-cap-de" data-de="Detail-Modal — Gesprächsverlauf">Detail-Modal — Gesprächsverlauf</span>
+          <span class="carousel-cap-en" data-en="Detail view — Interview history" style="display:none">Detail view — Interview history</span>
         </div>
-        <div class="mockup-table-row">
-          <span style="font-weight:600">Engineering Manager</span>
-          <span style="color:var(--text2)">TechBase AG</span>
-          <span><span class="mockup-pill pill-green" data-de="Gespräch" data-en="Interviewing">Interviewing</span></span>
-          <span><span class="mockup-timer" style="background:rgba(62,207,142,0.12);color:var(--green)">3d</span></span>
-          <span style="color:var(--text2);font-size:11px" data-de="Vorgespräch" data-en="Screening">Screening</span>
+      </div>
+      <div class="carousel-slide">
+        <img src="screenshots/screen_05.png" alt="Mobile view — responsive" loading="lazy">
+        <div class="carousel-caption">
+          <span class="carousel-cap-de" data-de="Mobile-Ansicht — responsive">Mobile-Ansicht — responsive</span>
+          <span class="carousel-cap-en" data-en="Mobile view — responsive" style="display:none">Mobile view — responsive</span>
         </div>
       </div>
     </div>
+    <button class="carousel-btn carousel-prev" onclick="carouselMove(-1)" aria-label="Previous">‹</button>
+    <button class="carousel-btn carousel-next" onclick="carouselMove(1)" aria-label="Next">›</button>
   </div>
+  <div class="carousel-dots" id="carouselDots"></div>
 </div>
 
 <hr class="divider">
+
+<!-- ── FEATURES<hr class="divider">
 
 <!-- ── FEATURES ── -->
 <section id="features">
@@ -904,6 +966,51 @@ footer {
 </footer>
 
 <script>
+
+// ── CAROUSEL ──
+let carouselIdx = 0;
+let carouselTotal = 5;
+let carouselTimer = null;
+
+function carouselGo(idx) {
+  carouselIdx = ((idx % carouselTotal) + carouselTotal) % carouselTotal;
+  document.getElementById('carouselTrack').style.transform = `translateX(-${carouselIdx * 100}%)`;
+  document.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === carouselIdx));
+}
+
+function carouselMove(dir) {
+  carouselGo(carouselIdx + dir);
+  carouselResetTimer();
+}
+
+function carouselResetTimer() {
+  clearInterval(carouselTimer);
+  carouselTimer = setInterval(() => carouselGo(carouselIdx + 1), 4000);
+}
+
+function carouselInit() {
+  const dots = document.getElementById('carouselDots');
+  for (let i = 0; i < carouselTotal; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+    btn.setAttribute('aria-label', `Slide ${i+1}`);
+    btn.onclick = () => { carouselGo(i); carouselResetTimer(); };
+    dots.appendChild(btn);
+  }
+  // Pause on hover
+  const wrap = document.querySelector('.carousel-wrap');
+  wrap.addEventListener('mouseenter', () => clearInterval(carouselTimer));
+  wrap.addEventListener('mouseleave', () => carouselResetTimer());
+  // Swipe support
+  let touchX = 0;
+  wrap.addEventListener('touchstart', e => touchX = e.touches[0].clientX);
+  wrap.addEventListener('touchend', e => {
+    const diff = touchX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) carouselMove(diff > 0 ? 1 : -1);
+  });
+  carouselResetTimer();
+}
+
 // ── LANGUAGE ──
 let LANG = 'en';
 
@@ -912,6 +1019,9 @@ function setLang(lang) {
   document.querySelectorAll('.lang-toggle button').forEach(btn => {
     btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
   });
+  // Carousel captions
+  document.querySelectorAll('.carousel-cap-de').forEach(el => el.style.display = lang === 'de' ? '' : 'none');
+  document.querySelectorAll('.carousel-cap-en').forEach(el => el.style.display = lang === 'en' ? '' : 'none');
   document.querySelectorAll('[data-' + lang + ']').forEach(el => {
     const val = el.getAttribute('data-' + lang);
     if (el.tagName === 'INPUT') {
@@ -946,6 +1056,7 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 // ── INIT ──
 setLang('en');
+carouselInit();
 </script>
 </body>
 </html>

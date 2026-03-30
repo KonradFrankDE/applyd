@@ -636,9 +636,8 @@ footer {
   nav { padding: 0 20px; }
   .nav-links { display: none; }
   .hero { padding: 100px 24px 60px; }
-  .mockup-wrap { padding: 0 24px 60px; }
-  .mockup-kpis { grid-template-columns: repeat(3, 1fr); }
-  .mockup-tab:not(.active) { display: none; }
+  .carousel-section { padding: 0 24px 60px; }
+  .carousel-slide img { height: 360px; }
   section { padding: 60px 24px; }
   .features-grid { grid-template-columns: 1fr; }
   .howto-grid { grid-template-columns: 1fr; gap: 32px; }
@@ -681,8 +680,15 @@ footer {
 
   .carousel-slide img {
     width: 100%;
-    height: auto;
+    height: 620px;
+    object-fit: cover;
+    object-position: top;
     display: block;
+  }
+
+  .carousel-slide.mobile-screen img {
+    object-fit: contain;
+    background: var(--bg);
   }
 
   .carousel-caption {
@@ -825,8 +831,7 @@ footer {
           <span class="carousel-cap-en" data-en="Detail view — Interview history" style="display:none">Detail view — Interview history</span>
         </div>
       </div>
-      <div class="carousel-slide">
-        <img src="screenshots/applyd_screen_05.png" alt="Mobile view — responsive" loading="lazy">
+      <div class="carousel-slide mobile-screen"> alt="Mobile view — responsive" loading="lazy">
         <div class="carousel-caption">
           <span class="carousel-cap-de" data-de="Mobile-Ansicht — responsive">Mobile-Ansicht — responsive</span>
           <span class="carousel-cap-en" data-en="Mobile view — responsive" style="display:none">Mobile view — responsive</span>

@@ -1,0 +1,3646 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Applyd</title>
+<!-- ============================================================
+     Applyd v1.0.0
+     Copyright (c) 2026 Konrad Frank
+     https://github.com/konradfrank/applyd
+
+     MIT License
+
+     Permission is hereby granted, free of charge, to any person
+     obtaining a copy of this software and associated documentation
+     files (the "Software"), to deal in the Software without
+     restriction, including without limitation the rights to use,
+     copy, modify, merge, publish, distribute, sublicense, and/or
+     sell copies of the Software, and to permit persons to whom the
+     Software is furnished to do so, subject to the following
+     conditions:
+
+     The above copyright notice and this permission notice shall be
+     included in all copies or substantial portions of the Software.
+
+     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+     OTHER DEALINGS IN THE SOFTWARE.
+     ============================================================ -->
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e2a;
+    --surface3: #222736;
+    --border: #2a2f3d;
+    --border2: #353b4d;
+    --text: #e2e6f0;
+    --text2: #a8b0c8;
+    --text3: #7e8699;
+    --accent: #4f9ef8;
+    --accent2: #7b68ee;
+    --green: #3ecf8e;
+    --yellow: #f5c842;
+    --red: #f25c5c;
+    --orange: #f5934a;
+    --pending: #4f9ef8;
+    --radius: 8px;
+    --radius2: 12px;
+  }
+
+  body.light {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --surface2: #f0f1f4;
+    --surface3: #e8eaef;
+    --border: #d8dae0;
+    --border2: #c4c7d0;
+    --text: #1a1d24;
+    --text2: #4a5068;
+    --text3: #8b90a0;
+    --accent: #2f7de1;
+    --accent2: #6c5fcf;
+    --green: #18a266;
+    --yellow: #d4950a;
+    --red: #d63b3b;
+    --orange: #d4690a;
+    --pending: #2f7de1;
+  }
+
+  body.light input[type="date"] { color-scheme: light; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  main { flex: 1; }
+
+  /* ── HEADER ── */
+  header {
+    padding: 24px 32px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+
+  .logo {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+
+  .logo span { color: var(--accent); }
+
+  nav {
+    display: flex;
+    gap: 0;
+  }
+
+  .tab {
+    padding: 14px 28px;
+    font-family: 'Syne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text3);
+    cursor: pointer;
+    border: none;
+    background: none;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+    position: relative;
+    top: 1px;
+  }
+
+  .tab:hover { color: var(--text2); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .header-right {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    color: var(--text3);
+  }
+
+  /* ── LAYOUT ── */
+  main {
+    padding: 32px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .view { display: none; }
+  .view.active { display: block; width: 100%; }
+
+  /* ── DASHBOARD ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  .kpi.green::before { background: var(--green); }
+  .kpi.yellow::before { background: var(--yellow); }
+  .kpi.red::before { background: var(--red); }
+  .kpi.purple::before { background: var(--accent2); }
+  .kpi.cyan::before { background: #06b6d4; }
+
+  .kpi-label {
+    font-size: clamp(9px, 1.1vw, 13px);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+    white-space: normal;
+    word-break: break-word;
+    hyphens: auto;
+    line-height: 1.3;
+  }
+
+  .kpi-value {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: clamp(20px, 2.5vw, 38px);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 6px;
+    word-break: break-word;
+  }
+
+  .kpi-sub {
+    font-size: 14px;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── CHARTS ROW ── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    padding: 20px;
+  }
+
+  .chart-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 6px;
+  }
+
+  .chart-desc {
+    font-size: 13px;
+    color: var(--text3);
+    line-height: 1.5;
+    margin-bottom: 16px;
+    border-left: 2px solid var(--border2);
+    padding-left: 10px;
+  }
+
+  /* ── FUNNEL ── */
+  .funnel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .funnel-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .funnel-label {
+    font-size: 14px;
+    color: var(--text2);
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  .funnel-bar-wrap {
+    flex: 1;
+    height: 24px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .funnel-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+  }
+
+  .funnel-bar span {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--bg);
+  }
+
+  .funnel-pct {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    color: var(--text3);
+    width: 40px;
+    text-align: right;
+  }
+
+  /* ── BAR CHARTS ── */
+  .bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bar-label {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    width: 72px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 20px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+
+  .bar-val {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: var(--text3);
+    width: 48px;
+    text-align: right;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.2;
+  }
+
+  .bar-val-num { font-size: 13px; color: var(--text2); font-weight: 700; }
+  .bar-val-pct { font-size: 11px; }
+
+  /* ── ACTIVE TIMER TABLE ── */
+  .active-section {
+    margin-bottom: 32px;
+  }
+
+  .timer-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .timer-table th {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    text-align: left;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .timer-table th:hover { color: var(--text2); }
+  .timer-table th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  .timer-table th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+
+  /* ── LOGOUT + LAST SAVED ── */
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    color: var(--text3);
+  }
+
+  .last-saved {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    color: var(--text3);
+  }
+
+  /* ── RESPONSIVE ── */
+  .table-scroll-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+
+  /* ── BURGER MENU ── */
+  .burger-btn {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    padding: 6px;
+  }
+
+  .burger-btn span {
+    display: block;
+    height: 2px;
+    background: var(--text2);
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .burger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .burger-btn.open span:nth-child(2) { opacity: 0; }
+  .burger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+
+
+  .timer-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+
+  .timer-table tr:hover td { background: var(--surface2); }
+
+  .timer-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .timer-badge.green { background: rgba(62,207,142,0.12); color: var(--green); }
+  .timer-badge.yellow { background: rgba(245,200,66,0.12); color: var(--yellow); }
+  .timer-badge.red { background: rgba(242,92,92,0.12); color: var(--red); }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .stufe-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    background: var(--surface3);
+    color: var(--text2);
+  }
+
+  /* ── TIMELINE ── */
+  .timeline-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .timeline-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .timeline-label {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    color: var(--text3);
+    width: 52px;
+    flex-shrink: 0;
+  }
+
+  .timeline-track {
+    flex: 1;
+    height: 16px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .timeline-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--accent);
+    opacity: 0.7;
+  }
+
+  .timeline-val {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    color: var(--text3);
+    width: 20px;
+    text-align: right;
+  }
+
+  /* ── TABELLE VIEW ── */
+  .table-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text2); }
+  .form-input::placeholder { color: var(--text2); }
+  .form-select { color: var(--text); }
+  .form-select option[value=""] { color: var(--text2); }
+  .form-select.placeholder-shown { color: var(--text2); }
+
+  .filter-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    color: var(--text2);
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .data-table {
+    width: 100%;
+    min-width: 700px;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+
+  .data-table th {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+
+  .data-table th:hover { color: var(--text2); }
+
+  .data-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    vertical-align: middle;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover td { background: var(--surface2); cursor: pointer; }
+
+  .status-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+
+  .status-pending { background: rgba(79,158,248,0.15); color: var(--accent); }
+  .status-absage { background: rgba(242,92,92,0.12); color: var(--red); }
+  .status-abgesagt { background: rgba(139,146,168,0.12); color: var(--text2); }
+  .status-prozess { background: rgba(62,207,142,0.12); color: var(--green); }
+  .status-gespraech { background: rgba(123,104,238,0.15); color: var(--accent2); }
+  .status-archiviert { background: rgba(90,96,117,0.1); color: var(--text3); }
+
+  /* Quick-Status Dropdown */
+  .status-quick-dropdown {
+    position: absolute;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    z-index: 100;
+    min-width: 160px;
+    overflow: hidden;
+  }
+
+  .status-quick-option {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Syne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  .status-quick-option:hover { background: var(--surface2); color: var(--text); }
+
+  /* Quick Notiz */
+  .quick-notiz-area {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .btn-archive {
+    background: rgba(90,96,117,0.12);
+    color: var(--text2);
+    border: 1px solid var(--border2);
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    font-family: 'Syne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+  }
+  .btn-archive:hover { color: var(--text); }
+  .btn-archive.is-archived { background: rgba(245,200,66,0.1); color: var(--yellow); border-color: rgba(245,200,66,0.3); }
+
+  /* ── GESPRÄCHS-TIMELINE ── */
+  .timeline-entry {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    position: relative;
+    padding-bottom: 16px;
+  }
+
+  .timeline-entry:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 32px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .timeline-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px solid var(--border2);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text2);
+    z-index: 1;
+  }
+
+  .timeline-dot.e-1 { border-color: var(--text3); color: var(--text3); }
+  .timeline-dot.e-2 { border-color: var(--yellow); color: var(--yellow); background: rgba(245,200,66,0.08); }
+  .timeline-dot.e-3 { border-color: var(--green); color: var(--green); background: rgba(62,207,142,0.08); }
+
+  .timeline-body {
+    flex: 1;
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+  }
+
+  .timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+
+  .timeline-stufe {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .timeline-date {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  .timeline-partner {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 4px;
+  }
+
+  .timeline-notiz {
+    font-size: 13px;
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  .timeline-delete {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    line-height: 1;
+    margin-left: 8px;
+  }
+
+  .timeline-delete:hover { color: var(--red); }
+
+  .modal-edit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .modal-edit-grid .full { grid-column: 1 / -1; }
+
+  .modal-edit-grid .form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 12px;
+  }
+
+  .modal-edit-grid .form-input,
+  .modal-edit-grid .form-select {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .modal-fit-selector {
+    display: flex;
+    gap: 6px;
+  }
+
+  .modal-fit-selector .fit-btn {
+    flex: 1;
+    padding: 7px 6px;
+    font-size: 12px;
+  }
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-top: 12px;
+  }
+
+  .gespraech-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 12px;
+    row-gap: 4px;
+    margin-bottom: 14px;
+    align-items: end;
+  }
+
+  .gespraech-form-grid > div {
+    padding-top: 12px;
+  }
+
+  .gespraech-form-grid > div:nth-child(-n+2) {
+    padding-top: 0;
+  }
+
+  .gespraech-form-grid .full { grid-column: 1 / -1; }
+
+  .fit-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+
+  .fit-1 { background: var(--text3); }
+  .fit-2 { background: var(--yellow); }
+  .fit-3 { background: var(--green); }
+
+  /* ── FORM VIEW ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .form-group { min-width: 0; }
+  .form-group.full { grid-column: 1 / -1; }
+
+  .form-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  .form-label .required-star { color: var(--red); margin-left: 2px; }
+
+  .form-input.error, .form-select.error {
+    border-color: var(--red) !important;
+    background: rgba(242,92,92,0.05);
+  }
+
+  .form-input, .form-select, .form-textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  input[type="date"] {
+    color-scheme: dark;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    height: auto;
+    color: var(--text2);
+  }
+
+  input[type="date"]:valid {
+    color: var(--text);
+  }
+
+  input[type="date"]::-webkit-datetime-edit {
+    color: var(--text2);
+  }
+
+  input[type="date"]::-webkit-datetime-edit-fields-wrapper:not(:empty) {
+    color: var(--text);
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .form-select option { background: var(--surface2); }
+
+  .fit-selector {
+    display: flex;
+    gap: 8px;
+  }
+
+  .fit-btn {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text2);
+    font-family: 'Syne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .fit-btn:hover { border-color: var(--border2); }
+  .fit-btn.active-1 { border-color: var(--text3); background: rgba(90,96,117,0.2); color: var(--text); }
+  .fit-btn.active-2 { border-color: var(--yellow); background: rgba(245,200,66,0.1); color: var(--yellow); }
+  .fit-btn.active-3 { border-color: var(--green); background: rgba(62,207,142,0.1); color: var(--green); }
+
+  .btn {
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    font-family: 'Syne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .btn-primary:hover { background: #3a8de8; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+
+  .btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+
+  .lang-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    color: var(--text3);
+    padding: 10px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    min-width: 80px;
+  }
+
+  .lang-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: none;
+  }
+
+  .lang-btn:hover { color: var(--text2); }
+  .lang-btn.active:hover { color: var(--accent); }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    grid-column: 1 / -1;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    background: var(--green);
+    color: var(--bg);
+    padding: 14px 20px;
+    border-radius: var(--radius);
+    font-weight: 700;
+    font-size: 14px;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 1000;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { background: var(--red); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius2);
+    padding: 32px;
+    width: 680px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  .modal-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-close {
+    background: none;
+    border: 1px solid var(--border2);
+    border-radius: 50%;
+    color: var(--text3);
+    font-size: 16px;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .modal-close:hover { color: var(--text); border-color: var(--text2); background: var(--surface2); }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+  }
+
+  .detail-item { }
+  .detail-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 4px;
+  }
+  .detail-value {
+    font-size: 14px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-danger {
+    background: rgba(242,92,92,0.12);
+    color: var(--red);
+    border: 1px solid rgba(242,92,92,0.2);
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    font-family: 'Syne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .btn-edit {
+    background: rgba(79,158,248,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(79,158,248,0.2);
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    font-family: 'Syne', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px;
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  /* ── BEGRÜNDUNGEN ── */
+  .begruendung-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .begruendung-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: var(--radius);
+  }
+
+  .begruendung-text {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text2);
+  }
+
+  .begruendung-count {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--red);
+    background: rgba(242,92,92,0.1);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  /* ── REAKTION ── */
+  .reaktion-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .reaktion-label {
+    width: 130px;
+    font-size: 14px;
+    color: var(--text2);
+  }
+
+  .reaktion-bar-wrap {
+    flex: 1;
+    height: 20px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .reaktion-bar {
+    height: 100%;
+    border-radius: 4px;
+  }
+
+  .reaktion-val {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    color: var(--text3);
+    width: 50px;
+    text-align: right;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .hint { font-size: 14px; color: var(--text3); margin-top: 2px; }
+
+  .cv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+
+  .cv-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: center;
+  }
+
+  .cv-version {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .cv-stats {
+    font-size: 14px;
+    color: var(--text3);
+    line-height: 1.6;
+  }
+
+  .cv-rate {
+    font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'SF Mono', 'Fira Code', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--green);
+    margin-top: 4px;
+  }
+
+
+  @media (max-width: 900px) {
+    header {
+      padding: 0 16px;
+      flex-wrap: wrap;
+      gap: 0;
+      position: static;
+      display: flex;
+      align-items: center;
+      height: auto;
+      min-height: 56px;
+    }
+    /* Top row: burger + logo + header-right */
+    .burger-btn { display: flex; order: 1; flex-shrink: 0; margin: 10px 0; }
+    .logo { order: 2; margin-left: 10px; text-align: left !important; flex: 1; }
+    .header-right { order: 3; flex-shrink: 0; }
+    #mainNav {
+      display: none;
+      order: 4;
+      width: 100%;
+      flex-direction: column;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      margin: 0 -16px;
+      padding: 8px 0 12px;
+    }
+    #mainNav.open { display: flex; }
+    header:has(#mainNav.open) { padding-bottom: 0; }
+    .tab { padding: 14px 20px; font-size: 14px; white-space: nowrap; text-align: left; border-bottom: none; border-left: 2px solid transparent; top: 0; }
+    .tab.active { border-left-color: var(--accent); border-bottom-color: transparent; background: var(--surface2); }
+    main { padding: 16px; max-width: 100%; }
+
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .kpi-value { font-size: 28px; }
+    .charts-row { grid-template-columns: 1fr !important; }
+
+    .timer-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .data-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .table-scroll-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+
+    .table-toolbar { flex-wrap: wrap; }
+    .search-input { min-width: 0; }
+
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group { min-width: 0; width: 100%; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-actions { flex-direction: column; }
+    .form-actions .btn { width: 100%; text-align: center; }
+
+    .modal { width: min(680px, 95vw); padding: 20px; }
+    .detail-grid { grid-template-columns: 1fr; }
+    .modal-edit-grid { grid-template-columns: 1fr; }
+    .modal-edit-grid .full { grid-column: 1; }
+    .modal-actions { flex-wrap: wrap; }
+
+    /* Einstellungen 2-col → 1-col */
+    .settings-grid { grid-template-columns: 1fr !important; }
+  }
+
+  @media (max-width: 480px) {
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .logo { font-size: 14px; }
+    .cv-grid { grid-template-columns: repeat(3, 1fr); }
+    main { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="burger-btn" id="burgerBtn" onclick="toggleBurger()" aria-label="Menü">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="logo"><span>///</span> Applyd</div>
+  <nav id="mainNav">
+    <button class="tab active" onclick="switchTab('dashboard')" data-lang="nav_dashboard">Dashboard</button>
+    <button class="tab" onclick="switchTab('tabelle')" data-lang="nav_applications">Bewerbungen <span id="tabBadge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;font-weight:700;margin-left:4px;vertical-align:middle"></span></button>
+    <button class="tab" onclick="switchTab('neu')" data-lang="nav_new">+ Eintrag</button>
+    <button class="tab" onclick="switchTab('einstellungen')" data-lang="nav_settings">Einstellungen</button>
+  </nav>
+
+  <div class="header-right">
+    <span class="last-saved" id="lastSaved"></span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ═══════════════ DASHBOARD ═══════════════ -->
+  <div class="view active" id="view-dashboard">
+
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="section-title" id="dash-active-title">Aktive Bewerbungen</div>
+    <div class="active-section">
+      <table class="timer-table" id="timerTable">
+        <thead>
+          <tr>
+            <th onclick="sortTimer('stelle')" id="th-timer-stelle">Stelle</th>
+            <th onclick="sortTimer('unternehmen')" id="th-timer-unternehmen">Unternehmen</th>
+            <th onclick="sortTimer('days')" id="th-timer-days">Wartezeit</th>
+            <th onclick="sortTimer('stufe')" id="th-timer-stufe">Stufe</th>
+            <th id="th-timer-schritt">Nächster Schritt</th>
+            <th onclick="sortTimer('faellig')" id="th-timer-faellig">Fällig am</th>
+          </tr>
+        </thead>
+        <tbody id="timerBody"></tbody>
+      </table>
+    </div>
+
+    <div class="section-title" style="margin-top:40px" id="dash-auswertung-title">Auswertung</div>
+
+    <div class="charts-row" style="grid-template-columns: 1fr 1fr;">
+      <div class="chart-card">
+        <div class="chart-card-title" data-langkey="chart_funnel_title">Trichter — Bewerbung bis Gespräch</div>
+        <p class="chart-desc" data-langkey="chart_funnel_desc">Vom Erstkontakt bis zum Gespräch — wie viele Bewerbungen konvertieren auf jeder Stufe?</p>
+        <div class="funnel" id="funnelChart"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title" data-langkey="chart_stages_title">Stufentrichter — Gesprächsverlauf</div>
+        <p class="chart-desc" data-langkey="chart_stages_desc">Wie weit kommst du im Gesprächsprozess? Zeigt auf welcher Stufe Prozesse enden.</p>
+        <div class="funnel" id="stufenTrichterChart"></div>
+      </div>
+    </div>
+    <div class="charts-row" style="grid-template-columns: 1fr 1fr;">
+      <div class="chart-card">
+        <div class="chart-card-title" data-langkey="chart_cv_title">CV-Version Performance</div>
+        <p class="chart-desc" data-langkey="chart_cv_desc">Gesprächsrate je CV-Version — welche Variante führt häufiger zu einem Gespräch?</p>
+        <div id="cvChart"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title" data-langkey="chart_broker_title">Vermittler · Rolle-Fit</div>
+        <p class="chart-desc" data-langkey="chart_broker_desc">Konversionsrate nach Kanal (Direkt vs. Headhunter) und nach deiner eigenen Einschätzung der Rollenpässung.</p>
+        <div id="reaktionChart"></div>
+        <div style="margin-top:20px" class="chart-card-title" data-langkey="chart_fit_title">Rolle-Fit Verteilung</div>
+        <div class="bar-chart" id="fitChart"></div>
+      </div>
+    </div>
+    <div class="charts-row" style="grid-template-columns: 1fr 1fr;">
+      <div class="chart-card">
+        <div class="chart-card-title" data-langkey="chart_timeline_title">Bewerbungen pro Monat</div>
+        <p class="chart-desc" data-langkey="chart_timeline_desc">Anzahl Bewerbungen pro Monat — zeigt Aktivitätsphasen und -lücken über den Zeitraum.</p>
+        <div class="timeline-bars" id="timelineChart"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title" data-langkey="chart_reasons_title">Top Absagegründe</div>
+        <p class="chart-desc" data-langkey="chart_reasons_desc">Häufigste genannte Absagegründe — helfen wiederkehrende Muster zu erkennen.</p>
+        <div class="begruendung-list" id="begruendungList"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════ TABELLE ═══════════════ -->
+  <div class="view" id="view-tabelle">
+    <div class="table-toolbar">
+      <input type="text" class="search-input" placeholder="Suchen..." id="searchInput" oninput="renderTable()">
+      <select class="filter-select" id="filterStatus" onchange="renderTable()">
+        <option value="">Alle Status</option>
+        <option value="aktiv">Warten</option>
+        <option value="prozess">In Prozess</option>
+        <option value="absage">Geschlossen</option>
+        <option value="abgesagt">Selbst abgesagt</option>
+        <option value="archiviert">Archiviert</option>
+      </select>
+    </div>
+    <div class="table-scroll-wrap"><table class="data-table" id="dataTable">
+      <thead>
+        <tr>
+          <th onclick="sortBy('id')">#</th>
+          <th onclick="sortBy('stelle')" data-langkey="col_position">Stelle</th>
+          <th onclick="sortBy('unternehmen')" data-langkey="col_company">Unternehmen</th>
+          <th onclick="sortBy('datum')" data-langkey="col_date">Datum</th>
+          <th onclick="sortBy('status')" data-langkey="label_status">Status</th>
+          <th onclick="sortBy('stufe')" id="th-data-stufe">Höchste Stufe</th>
+          <th onclick="sortBy('vermittler')" data-langkey="col_broker">Vermittler</th>
+          <th onclick="sortBy('fit')" data-langkey="col_fit">Fit</th>
+          <th onclick="sortBy('cv')" data-langkey="col_cv">CV</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text3);margin-top:12px;text-align:right" id="tableCount"></div>
+  </div>
+
+  <!-- ═══════════════ NEUER EINTRAG ═══════════════ -->
+  <div class="view" id="view-neu">
+    <div class="form-container">
+      <div class="section-title" id="formTitle">Neuer Eintrag</div>
+      <input type="hidden" id="editId">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_position">Stelle <span class="required-star">*</span></label>
+          <input type="text" class="form-input" id="f-stelle" data-langph="ph_position" placeholder="z.B. Engineering Manager">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_company">Unternehmen</label>
+          <input type="text" class="form-input" id="f-unternehmen" data-langph="ph_company" placeholder="z.B. Muster GmbH">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_date">Bewerbung am <span class="required-star">*</span></label>
+          <input type="date" class="form-input" id="f-datum" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_location">Ort</label>
+          <input type="text" class="form-input" id="f-ort" data-langph="ph_location" placeholder="z.B. Berlin / Remote">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_broker">Vermittler</label>
+          <select class="form-select" id="f-vermittler">
+            <option value="" class="placeholder-opt">Bitte wählen ...</option>
+            <option value="Direkt" data-langopt="opt_direct">Direkt</option>
+            <option value="Headhunter" data-langopt="opt_headhunter">Headhunter</option>
+            <option value="Arbeitsvermittlung" data-langopt="opt_agency">Arbeitsvermittlung</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_contact">Ansprechpartner</label>
+          <input type="text" class="form-input" id="f-ansprechpartner" data-langph="ph_contact" placeholder="Name oder Firma">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_status">Status</label>
+          <select class="form-select" id="f-status">
+            <option value="" class="placeholder-opt">Bitte wählen ...</option>
+            <option value="Warten" data-langopt="status_waiting">Warten</option>
+            <option value="Gespräch" data-langopt="status_interview">Gespräch</option>
+            <option value="Geschlossen" data-langopt="status_closed">Geschlossen</option>
+            <option value="Abgesagt" data-langopt="status_cancelled">Selbst abgesagt</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_reaction">Erste Rückmeldung am</label>
+          <input type="date" class="form-input" id="f-erstreaktion">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_cv">CV-Version</label>
+          <select class="form-select" id="f-cv">
+            <option value="" class="placeholder-opt">Bitte wählen ...</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label" data-langkey="label_fit">Rolle-Fit</label>
+          <div class="fit-selector">
+            <button class="fit-btn" onclick="selectFit(1)" id="fit-1" data-langbtn="fit_stretch">1 — Stretch</button>
+            <button class="fit-btn" onclick="selectFit(2)" id="fit-2" data-langbtn="fit_match">2 — Match</button>
+            <button class="fit-btn" onclick="selectFit(3)" id="fit-3" data-langbtn="fit_strong">3 — Starker Fit</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_next_step">Nächster Schritt</label>
+          <input type="text" class="form-input" id="f-naechster-schritt" data-langph="ph_next_step" placeholder="z.B. Nachfassen">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_due">Fällig am</label>
+          <input type="date" class="form-input" id="f-faellig">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_salary">Gehaltsvorstellung</label>
+          <input type="text" class="form-input" id="f-gehalt" data-langph="ph_salary" placeholder="z.B. 90.000 €">
+        </div>
+        <div class="form-group full">
+          <label class="form-label" data-langkey="label_reason">Begründung</label>
+          <select class="form-select" id="f-absagegrund" onchange="handleAbsagegrund(this,'f-begruendung')">
+            <option value="" class="placeholder-opt">Bitte wählen ...</option>
+            <option value="Keine Angabe">Keine Angabe</option>
+            <option value="Standort / vor Ort">Standort / vor Ort</option>
+            <option value="Gehalt">Gehalt</option>
+            <option value="Fehlende Erfahrung">Fehlende Erfahrung</option>
+            <option value="Fehlende Fachlichkeit">Fehlende Fachlichkeit</option>
+            <option value="Interne Besetzung">Interne Besetzung</option>
+            <option value="Bauchgefühl">Bauchgefühl (kulturell)</option>
+            <option value="Stelle gestrichen">Stelle gestrichen</option>
+            <option value="Abgesagt">Selbst abgesagt</option>
+            <option value="Sonstiges">Sonstiges</option>
+          </select>
+          <input type="text" class="form-input" id="f-begruendung" list="begruendung-options" data-langph="ph_reason_free" placeholder="Freie Notiz (optional)" autocomplete="off" style="margin-top:8px">
+          <datalist id="begruendung-options"></datalist>
+        </div>
+        <div class="form-group full">
+          <label class="form-label" data-langkey="label_link">Link</label>
+          <input type="url" class="form-input" id="f-link" placeholder="https://...">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveEntry()" data-langbtn="btn_save">Speichern</button>
+          <button class="btn btn-ghost" onclick="resetForm()" data-langbtn="btn_reset">Zurücksetzen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ═══════════════ EINSTELLUNGEN ═══════════════ -->
+  <div class="view" id="view-einstellungen">
+    <div style="max-width:1200px;margin:0 auto">
+      <div class="settings-grid">
+        <div>
+          <div class="section-title" id="settings-lang-title">Sprache / Language</div>
+          <div style="display:flex;gap:10px;margin-bottom:24px">
+            <button class="lang-btn active" data-langval="de" onclick="setLang('de')">DE 🇩🇪</button>
+            <button class="lang-btn" data-langval="en" onclick="setLang('en')">EN 🇬🇧</button>
+          </div>
+          <div class="section-title" id="settings-theme-title">Appearance</div>
+          <div style="display:flex;gap:10px;margin-bottom:32px">
+            <button class="lang-btn theme-btn active" data-themeval="dark" onclick="setTheme('dark')" id="theme-btn-dark">Dark</button>
+            <button class="lang-btn theme-btn" data-themeval="light" onclick="setTheme('light')" id="theme-btn-light">Light</button>
+          </div>
+          <div class="section-title" id="settings-cv-title">CV-Versionen</div>
+          <div style="color:var(--text2);font-size:14px;margin-bottom:20px" data-langkey="settings_cv_desc">Pflege hier deine CV-Versionen. Sie stehen dann beim Eintragen einer Bewerbung zur Auswahl.</div>
+          <div id="cvVersionList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px"></div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="text" class="form-input" id="newCvInput" data-langph="settings_cv_placeholder" placeholder="z.B. 1.2" style="flex:1"
+              onkeydown="if(event.key==='Enter')addCvVersion()">
+            <button class="btn btn-primary" onclick="addCvVersion()" data-langbtn="settings_cv_add" style="white-space:nowrap">+ Hinzufügen</button>
+          </div>
+          <div class="hint" style="margin-top:8px" data-langkey="settings_cv_hint">Tipp: Freitext — du kannst auch "1.2-Berlin" oder "Initiativ" als Versionsname verwenden.</div>
+        </div>
+
+        <div>
+          <div class="section-title">Export</div>
+          <div style="color:var(--text2);font-size:14px;margin-bottom:20px" data-langkey="export_desc">Alle Bewerbungen exportieren — als CSV für Excel/Numbers oder als JSON für Backup und Re-Import.</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px">
+            <button class="btn btn-ghost" onclick="exportCSV()" id="exportBtn" data-langbtn="settings_export_csv" style="display:flex;align-items:center;gap:8px">
+              ↓ CSV exportieren
+            </button>
+            <button class="btn btn-ghost" onclick="exportJSON()" data-langbtn="settings_export_json" style="display:flex;align-items:center;gap:8px">
+              ↓ JSON exportieren
+            </button>
+          </div>
+
+          <div class="section-title" style="margin-top:32px" id="settings-import-title">Import</div>
+          <div style="color:var(--text2);font-size:14px;margin-bottom:20px" data-langkey="import_desc">Bewerbungen aus einem früheren JSON-Export importieren. Neue Einträge werden zu bestehenden <strong style="color:var(--text)">hinzugefügt</strong> — vorhandene bleiben unberührt.</div>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <label class="btn btn-ghost" style="cursor:pointer;display:flex;align-items:center;gap:8px">
+              <span data-langbtn="settings_import_json">↑ JSON importieren</span>
+              <input type="file" accept=".json" id="importJsonInput" style="display:none" onchange="importJSON(this)">
+            </label>
+            <span id="importStatus" style="font-size:14px;color:var(--text3)"></span>
+          </div>
+          <div id="importPreview" style="display:none;margin-top:20px">
+            <div style="color:var(--text2);font-size:14px;margin-bottom:12px" id="importPreviewLabel"></div>
+            <div id="importPreviewList" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;margin-bottom:16px"></div>
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-primary" style="padding:10px 18px;font-size:13px" onclick="confirmImport()">Importieren</button>
+              <button class="btn btn-ghost" style="padding:10px 18px;font-size:13px" onclick="cancelImport()" data-langbtn="btn_cancel">Abbrechen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer style="text-align:center;padding:24px 32px;font-size:13px;color:var(--text3);border-top:1px solid var(--border);margin-top:auto">
+  © 2026 Konrad Frank · Applyd v1.0.0 · MIT License ·
+  <a href="https://github.com/konradfrank" target="_blank" style="color:var(--text3);text-decoration:none;hover:color:var(--text)">GitHub</a> ·
+  <a href="https://www.linkedin.com/in/konrad-frank" target="_blank" style="color:var(--text3);text-decoration:none">LinkedIn</a> ·
+  MIT License
+</footer>
+
+<!-- Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modalTitle">Eintrag</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="detail-grid" id="modalContent"></div>
+
+    <!-- Gesprächsverlauf -->
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div class="section-title" style="margin-bottom:0" data-langkey="modal_interview_history">Gesprächsverlauf</div>
+        <button class="btn-edit" onclick="toggleGespraechForm()" id="gespraechFormToggle" data-langbtn="btn_add_interview">+ Gespräch hinzufügen</button>
+      </div>
+      <div id="gespraechTimeline"></div>
+      <div id="gespraechForm" style="display:none">
+        <div class="gespraech-form">
+          <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:16px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div>
+                <label class="form-label" style="display:block;margin-bottom:6px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3)" data-langkey="interview_date">Datum</label>
+                <input type="date" class="form-input" id="gf-datum">
+              </div>
+              <div>
+                <label class="form-label" style="display:block;margin-bottom:6px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3)" data-langkey="interview_stage">Stufe</label>
+                <input type="text" class="form-input" id="gf-stufe" list="stufe-options" data-langph="ph_interview_stage" placeholder="z.B. Vorgespräch" autocomplete="off">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div>
+                <label class="form-label" style="display:block;margin-bottom:6px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3)">Partner</label>
+                <input type="text" class="form-input" id="gf-partner" data-langph="ph_interview_partner" placeholder="z.B. HR Manager">
+              </div>
+              <div>
+                <label class="form-label" style="display:block;margin-bottom:6px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3)" data-langkey="interview_rating">Einschätzung</label>
+                <div style="display:flex;gap:6px">
+                  <button class="fit-btn" style="padding:8px" onclick="selectGfEinschaetzung(1)" id="gfe-1">1</button>
+                  <button class="fit-btn" style="padding:8px" onclick="selectGfEinschaetzung(2)" id="gfe-2">2</button>
+                  <button class="fit-btn" style="padding:8px" onclick="selectGfEinschaetzung(3)" id="gfe-3">3</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="form-label" style="display:block;margin-bottom:6px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3)" data-langkey="interview_note">Notiz</label>
+              <input type="text" class="form-input" id="gf-notiz" data-langph="ph_interview_note" placeholder="Kurze Notiz">
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="btn btn-primary" style="padding:10px 18px;font-size:13px" onclick="saveGespraech()" data-langbtn="btn_save">Speichern</button>
+            <button class="btn btn-ghost" style="padding:10px 18px;font-size:13px" onclick="toggleGespraechForm()" data-langbtn="btn_cancel">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions" id="modalActionsView">
+      <button class="btn-edit" onclick="startModalEdit()" data-langbtn="btn_edit">Bearbeiten</button>
+      <button class="btn-archive" id="archiveBtn" onclick="toggleArchive()" data-langbtn="btn_archive">Archivieren</button>
+      <button class="btn-danger" onclick="deleteEntry()" data-langbtn="btn_delete">Löschen</button>
+    </div>
+    <div class="quick-notiz-area" id="quickNotizArea">
+      <input type="text" class="form-input" id="quickNotizInput" data-langph="modal_quick_note" placeholder="Schnellnotiz hinzufügen…" style="flex:1;font-size:13px;padding:8px 12px" onkeydown="if(event.key==='Enter')saveQuickNotiz()">
+      <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px;white-space:nowrap" onclick="saveQuickNotiz()" data-langbtn="btn_add_note">+ Notiz</button>
+    </div>
+    <div class="modal-actions" id="modalActionsEdit" style="display:none">
+      <button class="btn btn-primary" style="padding:10px 18px;font-size:13px" onclick="saveModalEdit()" data-langbtn="btn_save">Speichern</button>
+      <button class="btn btn-ghost" style="padding:10px 18px;font-size:13px" onclick="cancelModalEdit()" data-langbtn="btn_cancel">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✓ Gespeichert</div>
+<datalist id="stufe-options"></datalist>
+
+<script>
+// ═══════════════════════════════════════════════
+// VERSION
+// ═══════════════════════════════════════════════
+const APPLYD_VERSION = 'v1.0.0';
+
+// ═══════════════════════════════════════════════
+// STATUS CONSTANTS
+// ═══════════════════════════════════════════════
+const STATUS_OPTIONS = ['Warten','Gespräch','Geschlossen','Abgesagt'];
+
+// ═══════════════════════════════════════════════
+// LANGUAGE / i18n
+// ═══════════════════════════════════════════════
+let LANG = 'de';
+
+const T = {
+  de: {
+    // Nav
+    nav_dashboard: 'Dashboard',
+    nav_applications: 'Bewerbungen',
+    nav_new: '+ Eintrag',
+    nav_settings: 'Einstellungen',
+    // Dashboard
+    kpi_total: 'Gesamt',
+    kpi_responses: 'Rückmeldungen',
+    kpi_interviews: 'Gesprächsrate',
+    kpi_ghosting: 'Ghosting',
+    kpi_frequency: 'Frequenz',
+    active_title: 'Aktive Bewerbungen',
+    col_position: 'Stelle',
+    col_company: 'Unternehmen',
+    col_waiting: 'Wartezeit',
+    col_stage: 'Stufe',
+    col_next: 'Nächster Schritt',
+    col_due: 'Fällig am',
+    no_active: 'Keine aktiven Bewerbungen',
+    auswertung: 'Auswertung',
+    // Table
+    col_id: '#',
+    col_date: 'Datum',
+    col_status: 'Status',
+    col_broker: 'Vermittler',
+    col_fit: 'Fit',
+    col_cv: 'CV',
+    filter_all: 'Alle Status',
+    filter_active: 'Warten',
+    filter_process: 'In Prozess',
+    filter_closed: 'Geschlossen',
+    filter_cancelled: 'Selbst abgesagt',
+    filter_archived: 'Archiviert',
+    search_placeholder: 'Suchen...',
+    // Form
+    form_new: 'Neuer Eintrag',
+    form_edit: 'Eintrag bearbeiten',
+    label_position: 'Stelle',
+    label_company: 'Unternehmen',
+    label_date: 'Bewerbung am',
+    label_location: 'Ort',
+    label_broker: 'Vermittler',
+    label_contact: 'Ansprechpartner',
+    label_status: 'Status',
+    label_reaction: 'Erste Rückmeldung am',
+    label_cv: 'CV-Version',
+    label_fit: 'Rolle-Fit',
+    label_next_step: 'Nächster Schritt',
+    label_due: 'Fällig am',
+    label_salary: 'Gehaltsvorstellung',
+    label_reason: 'Absagegrund',
+    label_link: 'Link',
+    ph_position: 'z.B. Engineering Manager',
+    ph_company: 'z.B. Muster GmbH',
+    ph_location: 'z.B. Berlin / Remote',
+    ph_contact: 'Name oder Firma',
+    ph_next_step: 'z.B. Nachfassen',
+    ph_salary: 'z.B. 90.000 €',
+    ph_reason_free: 'Freie Notiz (optional)',
+    ph_link: 'https://...',
+    ph_select: 'Bitte wählen ...',
+    opt_direct: 'Direkt',
+    opt_headhunter: 'Headhunter',
+    opt_agency: 'Arbeitsvermittlung',
+    fit_stretch: '1 — Stretch',
+    fit_match: '2 — Match',
+    fit_strong: '3 — Starker Fit',
+    btn_save: 'Speichern',
+    btn_reset: 'Zurücksetzen',
+    btn_cancel: 'Abbrechen',
+    btn_edit: 'Bearbeiten',
+    btn_archive: 'Archivieren',
+    btn_unarchive: 'Archivierung aufheben',
+    btn_delete: 'Löschen',
+    btn_add_interview: '+ Gespräch hinzufügen',
+    // Status values (display only)
+    status_waiting: 'Warten',
+    status_interview: 'Gespräch',
+    status_closed: 'Geschlossen',
+    status_cancelled: 'Selbst abgesagt',
+    status_archived: 'Archiviert',
+    // Reason options
+    reason_none: 'Keine Angabe',
+    reason_location: 'Standort / vor Ort',
+    reason_salary: 'Gehalt',
+    reason_exp: 'Fehlende Erfahrung',
+    reason_skill: 'Fehlende Fachlichkeit',
+    reason_internal: 'Interne Besetzung',
+    reason_culture: 'Bauchgefühl (kulturell)',
+    reason_cancelled_role: 'Stelle gestrichen',
+    reason_self: 'Selbst abgesagt',
+    reason_other: 'Sonstiges',
+    // Modal
+    modal_interview_history: 'Gesprächsverlauf',
+    modal_quick_note: 'Schnellnotiz hinzufügen…',
+    btn_add_note: '+ Notiz',
+    interview_date: 'Datum',
+    interview_stage: 'Stufe',
+    interview_partner: 'Partner',
+    interview_rating: 'Einschätzung',
+    interview_note: 'Notiz',
+    ph_interview_stage: 'z.B. Vorgespräch',
+    ph_interview_partner: 'z.B. HR Manager',
+    ph_interview_note: 'Kurze Notiz',
+    // Settings
+    settings_cv_title: 'CV-Versionen',
+    settings_cv_desc: 'Pflege hier deine CV-Versionen. Sie stehen dann beim Eintragen einer Bewerbung zur Auswahl.',
+    settings_cv_hint: 'Tipp: Freitext — du kannst auch "1.2-Berlin" oder "Initiativ" als Versionsname verwenden.',
+    settings_cv_placeholder: 'z.B. 1.2',
+    settings_cv_add: '+ Hinzufügen',
+    settings_export_title: 'Export & Import',
+    settings_export_csv: '↓ CSV exportieren',
+    settings_export_json: '↓ JSON exportieren',
+    settings_import_json: '↑ JSON importieren',
+    settings_language: 'Sprache / Language',
+    // Toast
+    toast_saved: '✓ Gespeichert',
+    toast_deleted: '✓ Gelöscht',
+    toast_imported: '✓ Importiert',
+    toast_archived: '✓ Archiviert',
+    toast_unarchived: '✓ Archivierung aufgehoben',
+    // Misc
+    last_saved: 'gespeichert',
+    confirm_delete: 'Eintrag wirklich löschen?',
+    no_reasons: 'Keine Begründungen erfasst',
+    week_abbr: 'W',
+    days_abbr: 'd',
+    // Chart descriptions
+    chart_funnel_title: 'Trichter — Bewerbung bis Gespräch',
+    chart_funnel_desc: 'Vom Erstkontakt bis zum Gespräch — wie viele Bewerbungen konvertieren auf jeder Stufe?',
+    chart_stages_title: 'Stufentrichter — Gesprächsverlauf',
+    chart_stages_desc: 'Wie weit kommst du im Gesprächsprozess? Zeigt auf welcher Stufe Prozesse enden.',
+    chart_cv_title: 'CV-Version Performance',
+    chart_cv_desc: 'Gesprächsrate je CV-Version — welche Variante führt häufiger zu einem Gespräch?',
+    chart_broker_title: 'Vermittler · Rolle-Fit',
+    chart_broker_desc: 'Konversionsrate nach Kanal (Direkt vs. Headhunter) und nach eigener Einschätzung der Rollenpassung.',
+    chart_fit_title: 'Rolle-Fit Verteilung',
+    chart_timeline_title: 'Bewerbungen pro Monat',
+    chart_timeline_desc: 'Anzahl Bewerbungen pro Monat — zeigt Aktivitätsphasen und -lücken über den Zeitraum.',
+    chart_reasons_title: 'Top Absagegründe',
+    chart_reasons_desc: 'Häufigste genannte Absagegründe — helfen wiederkehrende Muster zu erkennen.',
+    no_cv_versions: 'Noch keine CV-Versionen gepflegt.',
+    no_interviews: 'Noch keine Gespräche erfasst.',
+    export_desc: 'Alle Bewerbungen exportieren — als CSV für Excel/Numbers oder als JSON für Backup und Re-Import.',
+    import_desc: 'Bewerbungen aus einem früheren JSON-Export importieren. Neue Einträge werden zu bestehenden <strong style="color:var(--text)">hinzugefügt</strong> — vorhandene bleiben unberührt.',
+    export_csv_count: (n) => `↓ CSV exportieren (${n} Einträge)`,
+    import_none: 'Keine importierbaren Einträge gefunden',
+    import_all_exist: (fmt, n) => `${fmt}: Alle ${n} Einträge bereits vorhanden — nichts zu importieren.`,
+    import_preview: (n, d) => `<strong style="color:var(--text)">${n} neue Einträge</strong> werden hinzugefügt${d ? ` · ${d} bereits vorhanden (übersprungen)` : ''}.`,
+    import_done: (n) => `✓ ${n} Einträge importiert`,
+    days_label: 'Tage',
+    waiting_time: 'Wartezeit',
+  },
+  en: {
+    // Nav
+    nav_dashboard: 'Dashboard',
+    nav_applications: 'Applications',
+    nav_new: '+ New Entry',
+    nav_settings: 'Settings',
+    // Dashboard
+    kpi_total: 'Total',
+    kpi_responses: 'Responses',
+    kpi_interviews: 'Interview Rate',
+    kpi_ghosting: 'Ghosting',
+    kpi_frequency: 'Frequency',
+    active_title: 'Active Applications',
+    col_position: 'Position',
+    col_company: 'Company',
+    col_waiting: 'Waiting',
+    col_stage: 'Stage',
+    col_next: 'Next Step',
+    col_due: 'Due Date',
+    no_active: 'No active applications',
+    auswertung: 'Analytics',
+    // Table
+    col_id: '#',
+    col_date: 'Date',
+    col_status: 'Status',
+    col_broker: 'Channel',
+    col_fit: 'Fit',
+    col_cv: 'CV',
+    filter_all: 'All Status',
+    filter_active: 'Waiting',
+    filter_process: 'In Process',
+    filter_closed: 'Closed',
+    filter_cancelled: 'Self-cancelled',
+    filter_archived: 'Archived',
+    search_placeholder: 'Search...',
+    // Form
+    form_new: 'New Entry',
+    form_edit: 'Edit Entry',
+    label_position: 'Position',
+    label_company: 'Company',
+    label_date: 'Applied on',
+    label_location: 'Location',
+    label_broker: 'Channel',
+    label_contact: 'Contact',
+    label_status: 'Status',
+    label_reaction: 'First Response on',
+    label_cv: 'CV Version',
+    label_fit: 'Role Fit',
+    label_next_step: 'Next Step',
+    label_due: 'Due Date',
+    label_salary: 'Salary Expectation',
+    label_reason: 'Rejection Reason',
+    label_link: 'Link',
+    ph_position: 'e.g. Engineering Manager',
+    ph_company: 'e.g. Acme Corp',
+    ph_location: 'e.g. Berlin / Remote',
+    ph_contact: 'Name or company',
+    ph_next_step: 'e.g. Follow up',
+    ph_salary: 'e.g. €90,000',
+    ph_reason_free: 'Free note (optional)',
+    ph_link: 'https://...',
+    ph_select: 'Please select ...',
+    opt_direct: 'Direct',
+    opt_headhunter: 'Headhunter',
+    opt_agency: 'Recruitment Agency',
+    fit_stretch: '1 — Stretch',
+    fit_match: '2 — Match',
+    fit_strong: '3 — Strong Fit',
+    btn_save: 'Save',
+    btn_reset: 'Reset',
+    btn_cancel: 'Cancel',
+    btn_edit: 'Edit',
+    btn_archive: 'Archive',
+    btn_unarchive: 'Unarchive',
+    btn_delete: 'Delete',
+    btn_add_interview: '+ Add Interview',
+    // Status values (display only)
+    status_waiting: 'Waiting',
+    status_interview: 'Interviewing',
+    status_closed: 'Closed',
+    status_cancelled: 'Self-cancelled',
+    status_archived: 'Archived',
+    // Reason options
+    reason_none: 'Not specified',
+    reason_location: 'Location / on-site',
+    reason_salary: 'Salary',
+    reason_exp: 'Lack of experience',
+    reason_skill: 'Lack of expertise',
+    reason_internal: 'Internal hire',
+    reason_culture: 'Culture fit',
+    reason_cancelled_role: 'Role cancelled',
+    reason_self: 'Self-cancelled',
+    reason_other: 'Other',
+    // Modal
+    modal_interview_history: 'Interview History',
+    modal_quick_note: 'Add quick note…',
+    btn_add_note: '+ Note',
+    interview_date: 'Date',
+    interview_stage: 'Stage',
+    interview_partner: 'Partner',
+    interview_rating: 'Rating',
+    interview_note: 'Note',
+    ph_interview_stage: 'e.g. Screening',
+    ph_interview_partner: 'e.g. HR Manager',
+    ph_interview_note: 'Short note',
+    // Settings
+    settings_cv_title: 'CV Versions',
+    settings_cv_desc: 'Manage your CV versions here. They will be available when adding a new application.',
+    settings_cv_hint: 'Tip: Free text — you can use "1.2-Berlin" or "Speculative" as version names.',
+    settings_cv_placeholder: 'e.g. 1.2',
+    settings_cv_add: '+ Add',
+    settings_export_title: 'Export & Import',
+    settings_export_csv: '↓ Export CSV',
+    settings_export_json: '↓ Export JSON',
+    settings_import_json: '↑ Import JSON',
+    settings_language: 'Sprache / Language',
+    // Toast
+    toast_saved: '✓ Saved',
+    toast_deleted: '✓ Deleted',
+    toast_imported: '✓ Imported',
+    toast_archived: '✓ Archived',
+    toast_unarchived: '✓ Unarchived',
+    // Misc
+    last_saved: 'saved',
+    confirm_delete: 'Really delete this entry?',
+    no_reasons: 'No reasons recorded',
+    week_abbr: 'w',
+    days_abbr: 'd',
+    // Chart descriptions
+    chart_funnel_title: 'Funnel — Application to Interview',
+    chart_funnel_desc: 'From first contact to interview — how many applications convert at each stage?',
+    chart_stages_title: 'Stage Funnel — Interview Progress',
+    chart_stages_desc: 'How far do you get in the interview process? Shows at which stage processes end.',
+    chart_cv_title: 'CV Version Performance',
+    chart_cv_desc: 'Interview rate per CV version — which variant leads to more interviews?',
+    chart_broker_title: 'Channel · Role Fit',
+    chart_broker_desc: 'Conversion rate by channel (Direct vs. Headhunter) and by your own assessment of role fit.',
+    chart_fit_title: 'Role Fit Distribution',
+    chart_timeline_title: 'Applications per Month',
+    chart_timeline_desc: 'Number of applications per month — shows activity phases and gaps over time.',
+    chart_reasons_title: 'Top Rejection Reasons',
+    chart_reasons_desc: 'Most frequently noted rejection reasons — helps identify recurring patterns.',
+    no_cv_versions: 'No CV versions added yet.',
+    no_interviews: 'No interviews recorded.',
+    export_desc: 'Export all applications — as CSV for Excel/Numbers or as JSON for backup and re-import.',
+    import_desc: 'Import from a previous JSON export. New entries will be <strong style="color:var(--text)">added</strong> to existing ones — duplicates are skipped.',
+    export_csv_count: (n) => `↓ Export CSV (${n} entries)`,
+    import_none: 'No importable entries found',
+    import_all_exist: (fmt, n) => `${fmt}: All ${n} entries already exist — nothing to import.`,
+    import_preview: (n, d) => `<strong style="color:var(--text)">${n} new entries</strong> will be added${d ? ` · ${d} already exist (skipped)` : ''}.`,
+    import_done: (n) => `✓ ${n} entries imported`,
+    days_label: 'days',
+    waiting_time: 'Waiting time',
+  }
+};
+
+function t(key) { return (T[LANG] && T[LANG][key]) || T.de[key] || key; }
+
+function setTheme(theme) {
+  document.body.classList.toggle('light', theme === 'light');
+  localStorage.setItem('applyd_theme', theme);
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.themeval === theme);
+  });
+  const themeTitle = document.getElementById('settings-theme-title');
+  if (themeTitle) themeTitle.textContent = LANG === 'en' ? 'Appearance' : 'Erscheinungsbild';
+}
+
+function setLang(lang) {
+  LANG = lang;
+  localStorage.setItem('applyd_lang', lang);
+  applyLang();
+  renderDashboard();
+  renderTable();
+  renderCvVersionList();
+}
+
+function applyLang() {
+  // Nav tabs
+  const tabs = document.querySelectorAll('.tab[data-lang]');
+  tabs.forEach(tab => { tab.textContent = t(tab.dataset.lang); });
+  // Badge re-attach for Bewerbungen tab
+  const badge = document.getElementById('tabBadge');
+  if (badge) {
+    const bewTab = document.querySelector('.tab[data-lang="nav_applications"]');
+    if (bewTab && !bewTab.contains(badge)) bewTab.appendChild(badge);
+  }
+  // Language toggle buttons
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.langval === LANG);
+  });
+  // Static section titles
+  const dashActive = document.getElementById('dash-active-title');
+  if (dashActive) dashActive.textContent = t('active_title');
+  const dashAuswertung = document.getElementById('dash-auswertung-title');
+  if (dashAuswertung) dashAuswertung.textContent = t('auswertung');
+  const settingsCv = document.getElementById('settings-cv-title');
+  if (settingsCv) settingsCv.textContent = t('settings_cv_title');
+  // Filter options
+  const fOpts = {
+    'fopt-all': 'filter_all', 'fopt-active': 'filter_active',
+    'fopt-process': 'filter_process', 'fopt-closed': 'filter_closed',
+    'fopt-cancelled': 'filter_cancelled', 'fopt-archived': 'filter_archived'
+  };
+  Object.entries(fOpts).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t(key);
+  });
+  // Timer table headers
+  const timerHeaders = {
+    'th-timer-stelle': 'col_position', 'th-timer-unternehmen': 'col_company',
+    'th-timer-days': 'col_waiting', 'th-timer-stufe': 'col_stage',
+    'th-timer-schritt': 'col_next', 'th-timer-faellig': 'col_due'
+  };
+  Object.entries(timerHeaders).forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t(key);
+  });
+  // Data table headers
+  const dataTh = document.getElementById('th-data-stufe');
+  if (dataTh) dataTh.textContent = LANG === 'en' ? 'Highest Stage' : 'Höchste Stufe';
+  // Translate select options
+  document.querySelectorAll('option[data-langopt]').forEach(opt => {
+    opt.textContent = t(opt.dataset.langopt);
+  });
+  // Generic data-langkey handler for static labels
+  const htmlKeys = new Set(['import_desc', 'export_desc']);
+  document.querySelectorAll('[data-langkey]').forEach(el => {
+    const key = el.dataset.langkey;
+    const val = t(key);
+    if (!val || val === key) return;
+    // Preserve required star if present
+    const star = el.querySelector('.required-star');
+    if (star) {
+      el.childNodes[0].textContent = val + ' ';
+    } else if (htmlKeys.has(key)) {
+      el.innerHTML = val;
+    } else {
+      el.textContent = val;
+    }
+  });
+  // Buttons with data-langbtn
+  document.querySelectorAll('[data-langbtn]').forEach(el => {
+    el.textContent = t(el.dataset.langbtn);
+  });
+  // Placeholders with data-langph
+  document.querySelectorAll('[data-langph]').forEach(el => {
+    el.placeholder = t(el.dataset.langph);
+  });
+  // Search placeholder
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.placeholder = t('search_placeholder');
+  // Form title
+  const formTitle = document.getElementById('formTitle');
+  if (formTitle) {
+    const isEdit = document.getElementById('editId')?.value;
+    formTitle.textContent = isEdit ? t('form_edit') : t('form_new');
+  }
+  // Form Rolle-Fit buttons
+  const fitBtns = [
+    ['fit-1', 'fit_stretch'], ['fit-2', 'fit_match'], ['fit-3', 'fit_strong']
+  ];
+  fitBtns.forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t(key);
+  });
+  // Modal Gesprächsverlauf title
+  const gvTitle = document.querySelector('.modal .section-title');
+  if (gvTitle) gvTitle.textContent = t('modal_interview_history');
+  // Settings titles and descriptions
+  const settingsExport = document.getElementById('settings-export-title');
+  if (settingsExport) settingsExport.textContent = t('settings_export_title');
+  const settingsLang = document.getElementById('settings-lang-title');
+  if (settingsLang) settingsLang.textContent = t('settings_language');
+  const settingsTheme = document.getElementById('settings-theme-title');
+  if (settingsTheme) settingsTheme.textContent = LANG === 'en' ? 'Appearance' : 'Erscheinungsbild';
+  // Sync theme buttons
+  const currentTheme = localStorage.getItem('applyd_theme') || 'dark';
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.themeval === currentTheme);
+  });
+  const themeBtnDark = document.getElementById('theme-btn-dark');
+  const themeBtnLight = document.getElementById('theme-btn-light');
+  if (themeBtnDark) themeBtnDark.textContent = LANG === 'en' ? 'Dark' : 'Dunkel';
+  if (themeBtnLight) themeBtnLight.textContent = LANG === 'en' ? 'Light' : 'Hell';
+  const settingsImport = document.getElementById('settings-import-title');
+  if (settingsImport) settingsImport.textContent = LANG === 'en' ? 'Import' : 'Import';
+  // Export button with entry count
+  const exportBtn = document.getElementById('exportBtn');
+  if (exportBtn) exportBtn.textContent = T[LANG].export_csv_count(DB.length);
+  // Select placeholders
+  document.querySelectorAll('select .placeholder-opt').forEach(opt => {
+    opt.textContent = t('ph_select');
+  });
+}
+
+const _legacyStatusMap = { 'Pending': 'Warten', 'Interviewanfrage': 'Warten', 'Absage': 'Geschlossen', 'Vorgespräch': 'Gespräch' };
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+const parseLocal = d => { if (!d) return null; const [y,m,day] = d.split('-'); return new Date(+y, +m-1, +day); };
+
+// DST-safe day difference: compare calendar dates, not milliseconds
+function dayDiff(dateStr, referenceDate) {
+  if (!dateStr) return null;
+  const p = parseLocal(dateStr);
+  const r = referenceDate || new Date();
+  // Normalize reference to midnight
+  const ref = new Date(r.getFullYear(), r.getMonth(), r.getDate());
+  // Use UTC values to avoid DST issues
+  const utc1 = Date.UTC(p.getFullYear(), p.getMonth(), p.getDate());
+  const utc2 = Date.UTC(ref.getFullYear(), ref.getMonth(), ref.getDate());
+  return Math.round((utc1 - utc2) / 86400000);
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+const STATUS_LABEL = {
+  aktiv:      'Warten',
+  prozess:    'In Prozess',
+  absage:     'Geschlossen',
+  abgesagt:   'Selbst abgesagt',
+  archiviert: 'Archiviert',
+};
+
+const STATUS_LABEL_DIRECT = {
+  'Warten':          'Warten',
+  'Gespräch':        'Gespräch',
+  'Geschlossen':     'Geschlossen',
+  'Abgesagt':        'Selbst abgesagt',
+};
+
+const STATUS_CLASS_DIRECT = {
+  'Warten':          'status-pending',
+  'Gespräch':        'status-gespraech',
+  'Geschlossen':     'status-absage',
+  'Abgesagt':        'status-abgesagt',
+};
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+
+// SEED_DATA entfernt — Daten werden vom Server geladen (data/bewerbungen.json)
+const SEED_DATA = [];
+
+function importSeed(data) {
+  return data.map((d, i) => ({
+    id: i + 1,
+    stelle: d['Stelle'] || '',
+    unternehmen: d['Unternehmen'] || '',
+    datum: d['Bewerbung am'] || '',
+    ort: d['Ort'] || '',
+    status: d['Letzter Status'] || 'Warten',
+    erstreaktion: d['Erste Rückmeldung am'] || '',
+    begruendung: d['Begründung'] || '',
+    fit: parseInt(d['Rolle Fit (1-3)']) || 2,
+    cv: d['CV-Version'] || '',
+    link: d['Link'] || '',
+    archiviert: false,
+    vermittler: 'Direkt',
+    ansprechpartner: '',
+    naechsterSchritt: '',
+    faelligAm: '',
+    gespraeche: d['Höchste Stufe'] ? [{
+      datum: d['Datum letzter Kontakt'] || d['Erste Rückmeldung am'] || '',
+      stufe: d['Höchste Stufe'],
+      partner: '',
+      einschaetzung: 0,
+      notiz: ''
+    }] : []
+  }));
+}
+
+// Derived: höchste Stufe aus Gesprächsliste
+function getHoechsteStufe(e) {
+  if (!e.gespraeche || !e.gespraeche.length) return '';
+  return e.gespraeche[e.gespraeche.length - 1].stufe || '';
+}
+
+// Derived: letzter Kontakt aus Gesprächsliste
+function getLetzterKontakt(e) {
+  if (!e.gespraeche || !e.gespraeche.length) return e.erstreaktion || '';
+  const sorted = [...e.gespraeche].sort((a, b) => (b.datum || '').localeCompare(a.datum || ''));
+  return sorted[0].datum || e.erstreaktion || '';
+}
+
+let DB = [];
+let currentSort = { field: 'datum', dir: -1 };
+let currentModalId = null;
+let selectedFit = 0;
+
+function selectFit(n) {
+  selectedFit = selectedFit === n ? 0 : n;
+  [1,2,3].forEach(i => {
+    const btn = document.getElementById(`fit-${i}`);
+    btn.className = 'fit-btn' + (i === selectedFit ? ` active-${i}` : '');
+  });
+}
+
+function migrateStatus(db) {
+  const map = {
+    'Pending':     'Warten',
+    'Interviewanfrage': 'Warten',
+    'Absage':      'Geschlossen',
+    'Vorgespräch': 'Gespräch',
+  };
+  let changed = 0;
+  db.forEach(e => {
+    if (map[e.status]) {
+      e.status = map[e.status];
+      changed++;
+    }
+  });
+  if (changed > 0) console.log(`Migriert: ${changed} Einträge`);
+  return db;
+}
+
+function loadDB() {
+  const stored = localStorage.getItem('applyd_data');
+  if (stored) {
+    try { DB = migrateStatus(JSON.parse(stored)); } catch(e) { DB = []; }
+  } else {
+    DB = [];
+  }
+}
+
+function saveDB() {
+  localStorage.setItem('applyd_data', JSON.stringify(DB));
+  updateLastSaved();
+}
+
+function updateLastSaved() {
+  const el = document.getElementById('lastSaved');
+  if (!el) return;
+  const now = new Date();
+  el.textContent = t('last_saved') + ' ' + now.toLocaleTimeString(LANG === 'en' ? 'en-GB' : 'de-DE', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ═══════════════════════════════════════════════
+// DERIVED FIELDS
+// ═══════════════════════════════════════════════
+
+function getProzessstatus(e) {
+  const s = e.status;
+  if (s === 'Abgesagt') return 'abgesagt';
+  if (s === 'Geschlossen') return 'absage';
+  if (s === 'Gespräch') return 'prozess';
+  // Legacy
+  if (s === 'Absage') return 'absage';
+  if (s === 'Vorgespräch') return 'prozess';
+  if (getHoechsteStufe(e)) return 'prozess';
+  return 'aktiv'; // Warten + Pending
+}
+
+function getAbsagequalitaet(e) {
+  if (getProzessstatus(e) !== 'absage') return null;
+  const b = (e.begruendung || '').trim();
+  if (!b || b === 'Keine') return 'Keine';
+  return 'Begründet';
+}
+
+function daysSince(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  const now = new Date();
+  return Math.floor((now - d) / 86400000);
+}
+
+function timerColor(days) {
+  if (days === null) return 'green';
+  if (days <= 7) return 'green';
+  if (days <= 14) return 'yellow';
+  return 'red';
+}
+
+function timerLabel(days) {
+  if (days === null) return '—';
+  return `${days}d`;
+}
+
+function getTimerDays(e) {
+  // Active: days since application (no reaction)
+  // In process: days since last contact
+  const ps = getProzessstatus(e);
+  if (ps === 'aktiv') return daysSince(e.datum);
+  if (ps === 'prozess') return daysSince(getLetzterKontakt(e) || e.datum);
+  return null;
+}
+
+// ═══════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════
+
+function renderDashboard() {
+  const total = DB.length;
+  const mitReaktion = DB.filter(e => e.erstreaktion).length;
+  const mitGespraech = DB.filter(e => getHoechsteStufe(e)).length;
+  const absagen = DB.filter(e => getProzessstatus(e) === 'absage').length;
+  const begruendet = DB.filter(e => getAbsagequalitaet(e) === 'Begründet').length;
+  const aktiv = DB.filter(e => ['aktiv','prozess'].includes(getProzessstatus(e)) && !e.archiviert).length;
+
+  // Ghosting: Pending ohne je eine Reaktion (nicht archiviert)
+  const ghosting = DB.filter(e => (e.status === 'Warten' || e.status === 'Pending') && !e.erstreaktion && !e.archiviert).length;
+  const ghostingRate = aktiv ? Math.round(ghosting / aktiv * 100) : 0;
+
+  // Ø Reaktionszeit + Median
+  const reaktionszeiten = DB
+    .filter(e => e.erstreaktion && e.datum)
+    .map(e => Math.floor((new Date(e.erstreaktion) - new Date(e.datum)) / 86400000))
+    .filter(d => d >= 0)
+    .sort((a,b) => a-b);
+  const avgReaktion = reaktionszeiten.length
+    ? Math.round(reaktionszeiten.reduce((a,b) => a+b, 0) / reaktionszeiten.length)
+    : null;
+  const medianReaktion = reaktionszeiten.length
+    ? reaktionszeiten[Math.floor(reaktionszeiten.length / 2)]
+    : null;
+
+  // Frequenz-Trend: letzte 4 Wochen vs. Gesamtschnitt
+  const now = new Date();
+  const vierWochen = new Date(now - 28 * 86400000);
+  const allDates = DB.filter(e => e.datum).map(e => new Date(e.datum)).sort((a,b) => a-b);
+  const first = allDates[0];
+  const totalWeeks = first ? Math.max((now - first) / (7 * 86400000), 1) : 1;
+  const avgPerWeek = total / totalWeeks;
+  const recentCount = DB.filter(e => e.datum && new Date(e.datum) >= vierWochen).length;
+  const recentPerWeek = recentCount / 4;
+  const freqTrend = avgPerWeek > 0 ? Math.round((recentPerWeek - avgPerWeek) / avgPerWeek * 100) : 0;
+
+  const reaktionsrate = total ? Math.round(mitReaktion / total * 100) : 0;
+  const gespraechsrate = total ? Math.round(mitGespraech / total * 100) : 0;
+  const begruendungsrate = absagen ? Math.round(begruendet / absagen * 100) : 0;
+
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi">
+      <div class="kpi-label">${t('kpi_total')}</div>
+      <div class="kpi-value">${total}</div>
+      <div class="kpi-sub">${aktiv} ${LANG==='en'?'active / in process':'aktiv / in Prozess'}</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">${t('kpi_responses')}</div>
+      <div class="kpi-value" style="color:var(--green)">${reaktionsrate}%</div>
+      <div class="kpi-sub">${mitReaktion} ${LANG==='en'?'of':'von'} ${total} · Ø ${avgReaktion !== null ? avgReaktion + 'd' : '—'} (Med. ${medianReaktion !== null ? medianReaktion + 'd' : '—'})</div>
+    </div>
+    <div class="kpi yellow">
+      <div class="kpi-label">${t('kpi_interviews')}</div>
+      <div class="kpi-value" style="color:var(--yellow)">${gespraechsrate}%</div>
+      <div class="kpi-sub">${mitGespraech} ${LANG==='en'?'with ≥1 interview':'mit ≥1 Gespräch'}</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-label">${t('kpi_ghosting')}</div>
+      <div class="kpi-value" style="color:var(--red)">${ghostingRate}%</div>
+      <div class="kpi-sub">${ghosting} ${LANG==='en'?'active without response':'aktive ohne Reaktion'}</div>
+    </div>
+    <div class="kpi cyan">
+      <div class="kpi-label">${t('kpi_frequency')}</div>
+      <div class="kpi-value" style="color:#06b6d4">${avgPerWeek.toFixed(1)}<span style="font-size:16px">/${LANG==='en'?'w':'Wo'}</span></div>
+      <div class="kpi-sub">${LANG==='en'?'Last 4w:':'Letzte 4 Wo:'} ${recentPerWeek.toFixed(1)}/${LANG==='en'?'w':'Wo'} <span style="color:${freqTrend >= 0 ? 'var(--green)' : 'var(--red)'}">${freqTrend >= 0 ? '↑' : '↓'}${Math.abs(freqTrend)}%</span></div>
+    </div>
+  `;
+
+  renderTimerTable();
+  updateTabBadge();
+  renderFunnel(total, mitReaktion, mitGespraech, absagen, begruendet);
+  renderStufenTrichter();
+  renderCVChart();
+  renderReaktionChart();
+  renderFitChart();
+  renderTimeline();
+  renderBegruendungen();
+}
+
+let timerSort = { field: 'days', dir: -1 };
+
+function sortTimer(field) {
+  if (timerSort.field === field) timerSort.dir *= -1;
+  else { timerSort.field = field; timerSort.dir = -1; }
+  renderTimerTable();
+}
+
+function renderTimerTable() {
+  let active = DB.filter(e => ['aktiv','prozess'].includes(getProzessstatus(e)) && !e.archiviert);
+
+  // Update sort header indicators
+  document.querySelectorAll('.timer-table th').forEach(th => th.classList.remove('sort-asc','sort-desc'));
+  const thEl = document.getElementById('th-timer-' + timerSort.field);
+  if (thEl) thEl.classList.add(timerSort.dir === -1 ? 'sort-desc' : 'sort-asc');
+
+  active.sort((a, b) => {
+    let av, bv;
+    if (timerSort.field === 'days') { av = getTimerDays(a) ?? -1; bv = getTimerDays(b) ?? -1; }
+    else if (timerSort.field === 'fit') { av = a.fit || 0; bv = b.fit || 0; }
+    else { av = a[timerSort.field] || ''; bv = b[timerSort.field] || ''; }
+    return av < bv ? timerSort.dir : av > bv ? -timerSort.dir : 0;
+  });
+
+  const body = document.getElementById('timerBody');
+  if (!active.length) {
+    body.innerHTML = `<tr><td colspan="8" class="empty-state">${t('no_active')}</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = active.map(e => {
+    const days = getTimerDays(e);
+    const col = timerColor(days);
+    const stufe = getHoechsteStufe(e);
+    const schritt = e.naechsterSchritt || '';
+    const faelligBadge = e.faelligAm ? (() => {
+      const d = dayDiff(e.faelligAm);
+      if (d < 0) return `<span class="timer-badge red" style="font-size:11px"><span class="dot"></span>${Math.abs(d)}${t('days_abbr')} ${LANG==='en'?'overdue':'überfällig'}</span>`;
+      if (d === 0) return `<span class="timer-badge yellow" style="font-size:11px"><span class="dot"></span>${LANG==='en'?'Today':'Heute'}</span>`;
+      if (d <= 3) return `<span class="timer-badge yellow" style="font-size:11px">${d}d</span>`;
+      return `<span style="color:var(--text3);font-size:12px;font-family:'JetBrains Mono',monospace">${fmt(e.faelligAm)}</span>`;
+    })() : '<span style="color:var(--text3)">—</span>';
+    return `<tr onclick="openModal(${e.id})">
+      <td>${esc(e.stelle)}</td>
+      <td style="color:var(--text2)">${esc(e.unternehmen) || '—'}</td>
+      <td><span class="timer-badge ${col}"><span class="dot"></span>${timerLabel(days)}</span></td>
+      <td>${stufe ? `<span class="stufe-badge">${stufe}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+      <td style="color:var(--yellow)">${schritt || '<span style="color:var(--text3)">—</span>'}</td>
+      <td>${faelligBadge}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderStufenTrichter() {
+  const total = DB.length;
+  // Count entries that reached each stage (at any point in gespraeche)
+  const hasStudfe = (e, stufen) => (e.gespraeche || []).some(g => stufen.some(s => g.stufe && g.stufe.includes(s)));
+
+  const vorg  = DB.filter(e => hasStudfe(e, ['Vorgespräch'])).length;
+  const erst  = DB.filter(e => hasStudfe(e, ['1. Gespräch'])).length;
+  const zweit = DB.filter(e => hasStudfe(e, ['2. Gespräch'])).length;
+  const dritt = DB.filter(e => hasStudfe(e, ['3. Gespräch', '3. Vorgespräch'])).length;
+
+  const rows = [
+    { label: LANG==='en'?'HR Screening':'Vorgespräch HR', n: vorg,  base: total, color: 'var(--accent)' },
+    { label: LANG==='en'?'1st Interview':'1. Gespräch',   n: erst,  base: vorg,  color: 'var(--yellow)' },
+    { label: LANG==='en'?'2nd Interview':'2. Gespräch',   n: zweit, base: erst,  color: 'var(--orange)' },
+    { label: LANG==='en'?'3rd+ Interview':'3.+ Gespräch', n: dritt, base: zweit || erst, color: 'var(--green)' },
+  ];
+
+  document.getElementById('stufenTrichterChart').innerHTML = rows.map(r => {
+    const pctOfTotal = total ? Math.round(r.n / total * 100) : 0;
+    const pctOfPrev  = r.base ? Math.round(r.n / r.base * 100) : 0;
+    return `
+    <div class="funnel-row">
+      <span class="funnel-label">${r.label}</span>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:${pctOfTotal}%;background:${r.color}">
+          <span>${r.n}</span>
+        </div>
+      </div>
+      <span class="funnel-pct" title="${pctOfPrev}% ${LANG==='en'?'of prev. stage':'der vorh. Stufe'}">${pctOfTotal}%</span>
+    </div>`;
+  }).join('');
+}
+
+function renderFunnel(total, mitR, mitG, absagen, begruendet) {
+  const rows = [
+    { label: LANG==='en'?'Applications':'Bewerbungen', n: total, color: 'var(--accent)' },
+    { label: LANG==='en'?'Response':'Rückmeldung', n: mitR, color: 'var(--green)' },
+    { label: LANG==='en'?'Interview':'Gespräch', n: mitG, color: 'var(--yellow)' },
+    { label: LANG==='en'?'Reasoned':'Begründet', n: begruendet, color: 'var(--accent2)' },
+  ];
+
+  document.getElementById('funnelChart').innerHTML = rows.map(r => `
+    <div class="funnel-row">
+      <span class="funnel-label">${r.label}</span>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:${total ? Math.round(r.n/total*100) : 0}%;background:${r.color}">
+          <span>${r.n}</span>
+        </div>
+      </div>
+      <span class="funnel-pct">${total ? Math.round(r.n/total*100) : 0}%</span>
+    </div>
+  `).join('');
+}
+
+function renderCVChart() {
+  const cvMap = {};
+  DB.forEach(e => {
+    const cv = e.cv || '?';
+    if (!cvMap[cv]) cvMap[cv] = { total: 0, gespraech: 0 };
+    cvMap[cv].total++;
+    if (getHoechsteStufe(e)) cvMap[cv].gespraech++;
+  });
+
+  const cvs = Object.keys(cvMap).filter(k => k !== '?').sort((a,b) => parseFloat(a)-parseFloat(b));
+
+  // Trend: compare last two versions with ≥2 Bewerbungen
+  const cvsMitDaten = cvs.filter(k => cvMap[k].total >= 2);
+  let trendHtml = '';
+  if (cvsMitDaten.length >= 2) {
+    const prev = cvsMitDaten[cvsMitDaten.length - 2];
+    const curr = cvsMitDaten[cvsMitDaten.length - 1];
+    const prevRate = Math.round(cvMap[prev].gespraech / cvMap[prev].total * 100);
+    const currRate = Math.round(cvMap[curr].gespraech / cvMap[curr].total * 100);
+    const diff = currRate - prevRate;
+    const arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+    const color = diff > 0 ? 'var(--green)' : diff < 0 ? 'var(--red)' : 'var(--text3)';
+    trendHtml = `<div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:${color};margin-bottom:12px">
+      Trend v${prev}→v${curr}: ${arrow} ${diff > 0 ? '+' : ''}${diff}% ${LANG==='en'?'interview rate':'Gesprächsrate'}
+    </div>`;
+  }
+
+  document.getElementById('cvChart').innerHTML = trendHtml + `<div class="cv-grid">${cvs.map(cv => {
+    const d = cvMap[cv];
+    const rate = d.total ? Math.round(d.gespraech/d.total*100) : 0;
+    const rateColor = rate >= 40 ? 'var(--green)' : rate >= 20 ? 'var(--yellow)' : 'var(--text3)';
+    return `<div class="cv-card">
+      <div class="cv-version">v${cv}</div>
+      <div class="cv-stats">${d.total} Bew.<br>${d.gespraech} Gesp.</div>
+      <div class="cv-rate" style="color:${rateColor}">${rate}%</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderReaktionChart() {
+  const counts = { 'Direkt': 0, 'Headhunter': 0, 'Arbeitsvermittlung': 0 };
+  const gespraeche = { 'Direkt': 0, 'Headhunter': 0, 'Arbeitsvermittlung': 0 };
+  DB.forEach(e => {
+    const v = e.vermittler || 'Direkt';
+    if (counts[v] !== undefined) {
+      counts[v]++;
+      if (getHoechsteStufe(e)) gespraeche[v]++;
+    }
+  });
+  const total = DB.length;
+  const colors = { 'Direkt': 'var(--accent)', 'Headhunter': 'var(--yellow)', 'Arbeitsvermittlung': 'var(--green)' };
+  const labels = { 'Direkt': t('opt_direct'), 'Headhunter': t('opt_headhunter'), 'Arbeitsvermittlung': LANG==='en'?'Agency':'Vermittlung' };
+
+  document.getElementById('reaktionChart').innerHTML = Object.entries(counts).map(([k, v]) => {
+    const convRate = v ? Math.round(gespraeche[k]/v*100) : 0;
+    return `
+    <div class="reaktion-row">
+      <span class="reaktion-label">${labels[k]}</span>
+      <div class="reaktion-bar-wrap">
+        <div class="reaktion-bar" style="width:${total ? Math.round(v/total*100) : 0}%;background:${colors[k]}"></div>
+      </div>
+      <span class="reaktion-val">${v} · <span style="color:${colors[k]}">${convRate}%↑</span></span>
+    </div>`;
+  }).join('');
+}
+
+function renderFitChart() {
+  const stats = { 1: {total:0,gespraech:0}, 2: {total:0,gespraech:0}, 3: {total:0,gespraech:0} };
+  DB.forEach(e => {
+    if (e.fit && stats[e.fit]) {
+      stats[e.fit].total++;
+      if (getHoechsteStufe(e)) stats[e.fit].gespraech++;
+    }
+  });
+  const total = DB.length;
+  const labels = { 1: t('fit_stretch'), 2: t('fit_match'), 3: `3 — ${LANG==='en'?'Fit':'Fit'}` };
+  const colors = { 1: 'var(--text3)', 2: 'var(--yellow)', 3: 'var(--green)' };
+
+  document.getElementById('fitChart').innerHTML = [1,2,3].map(k => {
+    const s = stats[k];
+    const convRate = s.total ? Math.round(s.gespraech/s.total*100) : 0;
+    return `
+    <div class="bar-row">
+      <span class="bar-label">${labels[k]}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${total ? Math.round(s.total/total*100) : 0}%;background:${colors[k]}"></div>
+      </div>
+      <span class="bar-val">
+        <span class="bar-val-num">${s.total}</span>
+        <span class="bar-val-pct" style="color:${colors[k]}">${convRate}%</span>
+      </span>
+    </div>`;
+  }).join('');
+}
+
+function renderTimeline() {
+  const monthMap = {};
+  DB.forEach(e => {
+    if (!e.datum) return;
+    const m = e.datum.slice(0, 7);
+    monthMap[m] = (monthMap[m] || 0) + 1;
+  });
+  const months = Object.keys(monthMap).sort();
+  const max = Math.max(...Object.values(monthMap));
+
+  document.getElementById('timelineChart').innerHTML = months.map(m => `
+    <div class="timeline-row">
+      <span class="timeline-label">${m.slice(2).replace('-','/')}</span>
+      <div class="timeline-track">
+        <div class="timeline-fill" style="width:${Math.round(monthMap[m]/max*100)}%"></div>
+      </div>
+      <span class="timeline-val">${monthMap[m]}</span>
+    </div>
+  `).join('');
+}
+
+function renderBegruendungen() {
+  const counts = {};
+  DB.forEach(e => {
+    const b = e.begruendung;
+    if (!b || b === '' || b === 'Keine') return;
+    counts[b] = (counts[b] || 0) + 1;
+  });
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,8);
+  const el = document.getElementById('begruendungList');
+  if (!sorted.length) { el.innerHTML = `<div style="color:var(--text3);font-size:14px">${t('no_reasons')}</div>`; return; }
+  el.innerHTML = sorted.map(([k,v]) => `
+    <div class="begruendung-item">
+      <span class="begruendung-text">${k}</span>
+      <span class="begruendung-count">${v}×</span>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════
+// TABLE
+// ═══════════════════════════════════════════════
+
+function sortBy(field) {
+  if (currentSort.field === field) currentSort.dir *= -1;
+  else { currentSort.field = field; currentSort.dir = -1; }
+  renderTable();
+}
+
+function renderTable() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const filterStatus = document.getElementById('filterStatus').value;
+
+  let data = DB.filter(e => {
+    const ps = getProzessstatus(e);
+    const isArchiviert = !!e.archiviert;
+    // Archiviert-Filter: nur archivierte zeigen
+    if (filterStatus === 'archiviert') return isArchiviert;
+    // Andere Status-Filter: archivierte trotzdem ausblenden wenn spezifisch gefiltert
+    if (filterStatus === 'aktiv' && (ps !== 'aktiv' || isArchiviert)) return false;
+    if (filterStatus === 'prozess' && (ps !== 'prozess' || isArchiviert)) return false;
+    if (filterStatus === 'absage' && (ps !== 'absage' || isArchiviert)) return false;
+    if (filterStatus === 'abgesagt' && (ps !== 'abgesagt' || isArchiviert)) return false;
+    // Kein Filter: alle anzeigen (inkl. archivierte, ausgegraut)
+    if (search) {
+      const hay = `${e.stelle} ${e.unternehmen} ${e.ort} ${e.begruendung}`.toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  data.sort((a, b) => {
+    let av = a[currentSort.field] || '';
+    let bv = b[currentSort.field] || '';
+    if (currentSort.field === 'id' || currentSort.field === 'fit') {
+      av = Number(av); bv = Number(bv);
+    }
+    return av < bv ? -currentSort.dir : av > bv ? currentSort.dir : 0;
+  });
+
+  document.getElementById('tableCount').textContent = `${data.length} ${LANG==='en'?'entries':'Einträge'}`;
+
+  // Status labels/classes from global STATUS_LABEL, STATUS_LABEL_DIRECT, STATUS_CLASS_DIRECT
+
+  document.getElementById('tableBody').innerHTML = data.map(e => {
+    const ps = e.archiviert ? 'archiviert' : getProzessstatus(e);
+    const stufe = getHoechsteStufe(e);
+    const pillLabel = e.archiviert ? t('status_archived') : (({'Warten':t('status_waiting'),'Gespräch':t('status_interview'),'Geschlossen':t('status_closed'),'Abgesagt':t('status_cancelled')})[e.status] || STATUS_LABEL[ps]);
+    const pillClass = e.archiviert ? 'status-archiviert' : (STATUS_CLASS_DIRECT[e.status] || 'status-pending');
+    return `<tr onclick="openModal(${e.id})" style="${e.archiviert ? 'opacity:0.5' : ''}">
+      <td style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text3)">${e.id}</td>
+      <td style="max-width:260px">${esc(e.stelle)}</td>
+      <td style="color:var(--text2)">${esc(e.unternehmen) || '—'}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text3)">${fmt(e.datum)}</td>
+      <td style="position:relative"><span class="status-pill ${pillClass}" style="cursor:pointer" onclick="event.stopPropagation();showStatusDropdown(event,${e.id})">${pillLabel}</span></td>
+      <td>${stufe ? `<span class="stufe-badge">${stufe}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+      <td style="font-size:14px;color:var(--text2)">${e.vermittler || t('opt_direct')}</td>
+      <td>${e.fit ? `<span class="fit-dot fit-${e.fit}"></span>${e.fit}` : '—'}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent)">${e.cv || '—'}</td>
+    </tr>`;
+  }).join('');
+  updateTabBadge();
+}
+
+// ═══════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════
+
+function openModal(id) {
+  const e = DB.find(x => x.id === id);
+  if (!e) return;
+  currentModalId = id;
+  const ps = getProzessstatus(e);
+  // Uses global STATUS_LABEL
+  const days = getTimerDays(e);
+
+  document.getElementById('modalTitle').textContent = e.stelle;
+  const modalContent = document.getElementById('modalContent');
+  modalContent.className = 'detail-grid';
+  const dl = (key, val) => `<div class="detail-item"><div class="detail-label">${t(key)}</div><div class="detail-value">${val}</div></div>`;
+  const statusDisplay = e.archiviert
+    ? '📦 ' + t('status_archived')
+    : ({'Warten':t('status_waiting'),'Gespräch':t('status_interview'),'Geschlossen':t('status_closed'),'Abgesagt':t('status_cancelled')})[e.status] || STATUS_LABEL[ps];
+  modalContent.innerHTML = `
+    ${dl('label_company', e.unternehmen || '—')}
+    ${dl('label_location', e.ort || '—')}
+    ${dl('label_date', fmt(e.datum))}
+    ${dl('label_status', statusDisplay)}
+    ${dl('label_broker', e.vermittler || t('opt_direct'))}
+    ${dl('label_contact', e.ansprechpartner || '—')}
+    ${dl('label_reaction', fmt(e.erstreaktion))}
+    <div class="detail-item"><div class="detail-label">${t('waiting_time')}</div><div class="detail-value" style="color:var(--${timerColor(days)})">${days !== null ? days + ' ' + t('days_label') : '—'}</div></div>
+    ${dl('label_fit', e.fit || '—')}
+    ${dl('label_cv', e.cv || '—')}
+    ${e.gehalt ? dl('label_salary', `<span style="color:var(--green)">${esc(e.gehalt)}</span>`) : ''}
+    ${e.naechsterSchritt ? `<div class="detail-item" style="grid-column:1/-1"><div class="detail-label">${t('label_next_step')}</div><div class="detail-value" style="color:var(--yellow)">${esc(e.naechsterSchritt)}${e.faelligAm ? ' · ' + (LANG==='en'?'due ':'fällig ') + fmt(e.faelligAm) : ''}</div></div>` : ''}
+    <div class="detail-item" style="grid-column:1/-1"><div class="detail-label">${t('label_reason')}</div><div class="detail-value">${esc(e.begruendung) || '—'}</div></div>
+    ${e.link && e.link.startsWith('http') ? `<div class="detail-item" style="grid-column:1/-1"><div class="detail-label">${t('label_link')}</div><div class="detail-value"><a href="${e.link}" target="_blank">${LANG==='en'?'Open listing →':'Stellenanzeige öffnen →'}</a></div></div>` : ''}
+  `;
+
+  renderGespraechTimeline(e);
+
+  // Archiv-Button Zustand
+  const archBtn = document.getElementById('archiveBtn');
+  if (e.archiviert) {
+    archBtn.textContent = t('btn_unarchive');
+    archBtn.classList.add('is-archived');
+  } else {
+    archBtn.textContent = t('btn_archive');
+    archBtn.classList.remove('is-archived');
+  }
+
+  // Gesprächsformular zurücksetzen
+  document.getElementById('gespraechForm').style.display = 'none';
+  document.getElementById('gespraechFormToggle').textContent = t('btn_add_interview');
+
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('detailModal').classList.remove('open');
+  cancelModalEdit();
+  currentModalId = null;
+}
+
+let modalEditFit = 0;
+
+function startModalEdit() {
+  const e = DB.find(x => x.id === currentModalId);
+  if (!e) return;
+
+  // Close interview form if open
+  const gf = document.getElementById('gespraechForm');
+  const gfBtn = document.getElementById('gespraechFormToggle');
+  if (gf && gf.style.display !== 'none') {
+    gf.style.display = 'none';
+    if (gfBtn) gfBtn.textContent = t('btn_add_interview');
+    const tl = document.getElementById('gespraechTimeline');
+    if (tl) tl.style.display = '';
+    currentGfEditIdx = null;
+  }
+
+  // Build inline edit form inside modalContent
+  updateCvSelect();
+  const cvOptions = document.getElementById('f-cv')?.innerHTML || '';
+
+  const mc = document.getElementById('modalContent');
+  mc.className = ''; // Entfernt detail-grid, damit modal-edit-grid korrekt greift
+  mc.innerHTML = `
+    <div class="modal-edit-grid">
+      <div><label class="form-label" data-langkey="label_position">Stelle <span class="required-star">*</span></label>
+        <input type="text" class="form-input" id="me-stelle" value="${e.stelle || ''}"></div>
+      <div><label class="form-label" data-langkey="label_company">Unternehmen</label>
+        <input type="text" class="form-input" id="me-unternehmen" value="${e.unternehmen || ''}"></div>
+      <div><label class="form-label" data-langkey="label_date">Bewerbung am <span class="required-star">*</span></label>
+        <input type="date" class="form-input" id="me-datum" value="${e.datum || ''}"></div>
+      <div><label class="form-label" data-langkey="label_location">Ort</label>
+        <input type="text" class="form-input" id="me-ort" value="${e.ort || ''}"></div>
+      <div><label class="form-label" data-langkey="label_status">Status</label>
+        <select class="form-select" id="me-status"><option value="" class="placeholder-opt">Bitte wählen ...</option>${STATUS_OPTIONS.map(s => `<option value="${s}" ${e.status===s||(_legacyStatusMap[e.status]===s)?'selected':''}>${({'Warten':t('status_waiting'),'Gespräch':t('status_interview'),'Geschlossen':t('status_closed'),'Abgesagt':t('status_cancelled')})[s]||s}</option>`).join('')}</select></div>
+      <div><label class="form-label" data-langkey="label_reaction">Erste Rückmeldung am</label>
+        <input type="date" class="form-input" id="me-erstreaktion" value="${e.erstreaktion || ''}"></div>
+      <div><label class="form-label" data-langkey="label_broker">Vermittler</label>
+        <select class="form-select" id="me-vermittler">
+          <option value="" class="placeholder-opt">Bitte wählen ...</option>
+          <option value="Direkt" ${(e.vermittler||'')==='Direkt'?'selected':''}>${t('opt_direct')}</option>
+          <option value="Headhunter" ${e.vermittler==='Headhunter'?'selected':''}>${t('opt_headhunter')}</option>
+          <option value="Arbeitsvermittlung" ${e.vermittler==='Arbeitsvermittlung'?'selected':''}>${t('opt_agency')}</option>
+        </select></div>
+      <div><label class="form-label" data-langkey="label_contact">Ansprechpartner</label>
+        <input type="text" class="form-input" id="me-ansprechpartner" value="${e.ansprechpartner || ''}"></div>
+      <div><label class="form-label" data-langkey="label_cv">CV-Version</label>
+        <select class="form-select" id="me-cv">${cvOptions}</select></div>
+      <div><label class="form-label" data-langkey="label_next_step">Nächster Schritt</label>
+        <input type="text" class="form-input" id="me-naechster-schritt" value="${e.naechsterSchritt || ''}"></div>
+      <div><label class="form-label" data-langkey="label_due">Fällig am</label>
+        <input type="date" class="form-input" id="me-faellig" value="${e.faelligAm || ''}"></div>
+      <div><label class="form-label" data-langkey="label_salary">Gehaltsvorstellung</label>
+        <input type="text" class="form-input" id="me-gehalt" value="${e.gehalt || ''}" placeholder="z.B. 90.000 €"></div>
+      <div class="full"><label class="form-label" data-langkey="label_fit">Rolle-Fit</label>
+        <div class="modal-fit-selector">
+          <button class="fit-btn" onclick="setModalFit(1)" id="mfit-1">${t('fit_stretch')}</button>
+          <button class="fit-btn" onclick="setModalFit(2)" id="mfit-2">${t('fit_match')}</button>
+          <button class="fit-btn" onclick="setModalFit(3)" id="mfit-3">${t('fit_strong')}</button>
+        </div></div>
+      <div class="full"><label class="form-label" data-langkey="label_reason">Begründung</label>
+        <input type="text" class="form-input" id="me-begruendung" list="begruendung-options" value="${e.begruendung || ''}" autocomplete="off" placeholder="Kategorie oder freie Notiz (optional)"></div>
+      <div class="full"><label class="form-label" data-langkey="label_link">Link</label>
+        <input type="url" class="form-input" id="me-link" value="${e.link || ''}"></div>
+    </div>
+  `;
+
+  // Set CV and Fit values
+  document.getElementById('me-cv').value = e.cv || '';
+  modalEditFit = e.fit || 0;
+  setModalFit(modalEditFit, true);
+
+  // Switch action buttons
+  document.getElementById('modalActionsView').style.display = 'none';
+  document.getElementById('modalActionsEdit').style.display = 'flex';
+  document.getElementById('quickNotizArea').style.display = 'none';
+  applyLang();
+}
+
+function setModalFit(n, silent = false) {
+  modalEditFit = n;
+  [1,2,3].forEach(i => {
+    const btn = document.getElementById(`mfit-${i}`);
+    if (btn) btn.className = 'fit-btn' + (i === n ? ` active-${n}` : '');
+  });
+}
+
+function saveModalEdit() {
+  const e = DB.find(x => x.id === currentModalId);
+  if (!e) return;
+
+  const stelle = document.getElementById('me-stelle').value.trim();
+  const datum = document.getElementById('me-datum').value;
+
+  document.getElementById('me-stelle').classList.remove('error');
+  document.getElementById('me-datum').classList.remove('error');
+
+  let hasError = false;
+  if (!stelle) { document.getElementById('me-stelle').classList.add('error'); hasError = true; }
+  if (!datum)  { document.getElementById('me-datum').classList.add('error');  hasError = true; }
+  if (hasError) { showToast(LANG==='en'?'⚠ Please fill in required fields':'⚠ Bitte Pflichtfelder ausfüllen'); return; }
+
+  e.stelle = stelle;
+  e.unternehmen = document.getElementById('me-unternehmen').value.trim();
+  e.datum = datum;
+  e.ort = document.getElementById('me-ort').value.trim();
+  e.status = document.getElementById('me-status').value;
+  e.erstreaktion = document.getElementById('me-erstreaktion').value;
+  e.vermittler = document.getElementById('me-vermittler').value;
+  e.ansprechpartner = document.getElementById('me-ansprechpartner').value.trim();
+  e.cv = document.getElementById('me-cv').value;
+  e.naechsterSchritt = document.getElementById('me-naechster-schritt').value.trim();
+  e.faelligAm = document.getElementById('me-faellig').value;
+  e.gehalt = document.getElementById('me-gehalt').value.trim();
+  e.begruendung = document.getElementById('me-begruendung').value.trim();
+  e.link = document.getElementById('me-link').value.trim();
+  e.fit = modalEditFit;
+
+  saveDB();
+  showToast(t('toast_saved'));
+  renderDashboard();
+  renderTable();
+
+  // Back to detail view — store id since openModal needs it
+  const savedId = currentModalId;
+  document.getElementById('modalActionsView').style.display = 'flex';
+  document.getElementById('modalActionsEdit').style.display = 'none';
+  const qn = document.getElementById('quickNotizArea');
+  if (qn) qn.style.display = 'flex';
+  openModal(savedId);
+}
+
+function cancelModalEdit() {
+  const viewActions = document.getElementById('modalActionsView');
+  const editActions = document.getElementById('modalActionsEdit');
+  if (viewActions) viewActions.style.display = 'flex';
+  if (editActions) editActions.style.display = 'none';
+  // Re-render detail view only if modal is still open
+  if (currentModalId && document.getElementById('detailModal').classList.contains('open')) {
+    openModal(currentModalId);
+  }
+}
+
+function deleteEntry() {
+  if (!confirm(t('confirm_delete'))) return;
+  DB = DB.filter(x => x.id !== currentModalId);
+  saveDB();
+  closeModal();
+  renderDashboard();
+  renderTable();
+}
+
+function toggleArchive() {
+  const e = DB.find(x => x.id === currentModalId);
+  if (!e) return;
+  e.archiviert = !e.archiviert;
+  saveDB();
+  showToast(e.archiviert ? (LANG==='en'?'📦 Archived':t('toast_archived')) : (LANG==='en'?'✓ Reactivated':'✓ Reaktiviert'));
+  closeModal();
+  renderDashboard();
+  renderTable();
+}
+
+// ═══════════════════════════════════════════════
+// FORM
+// ═══════════════════════════════════════════════
+
+
+function saveEntry() {
+  const stelle = document.getElementById('f-stelle').value.trim();
+  const datum = document.getElementById('f-datum').value;
+
+  // Clear previous errors
+  ['f-stelle','f-datum'].forEach(id => document.getElementById(id).classList.remove('error'));
+
+  let hasError = false;
+  if (!stelle) { document.getElementById('f-stelle').classList.add('error'); hasError = true; }
+  if (!datum)  { document.getElementById('f-datum').classList.add('error');  hasError = true; }
+  if (hasError) { showToast(LANG==='en'?'⚠ Please fill in required fields':'⚠ Bitte Pflichtfelder ausfüllen'); return; }
+
+  // Clear errors on input
+  ['f-stelle','f-datum'].forEach(id => {
+    document.getElementById(id).addEventListener('input', function() {
+      this.classList.remove('error');
+    }, { once: true });
+  });
+
+  const editId = parseInt(document.getElementById('editId').value);
+  const entry = {
+    stelle,
+    unternehmen: document.getElementById('f-unternehmen').value.trim(),
+    datum: document.getElementById('f-datum').value,
+    ort: document.getElementById('f-ort').value.trim(),
+    status: document.getElementById('f-status').value,
+    erstreaktion: document.getElementById('f-erstreaktion').value,
+    cv: document.getElementById('f-cv').value,
+    begruendung: document.getElementById('f-begruendung').value.trim(),
+    link: document.getElementById('f-link').value.trim(),
+    fit: selectedFit,
+    vermittler: document.getElementById('f-vermittler').value,
+    ansprechpartner: document.getElementById('f-ansprechpartner').value.trim(),
+    naechsterSchritt: document.getElementById('f-naechster-schritt').value.trim(),
+    faelligAm: document.getElementById('f-faellig').value,
+    begruendung: (document.getElementById('f-absagegrund').value && document.getElementById('f-absagegrund').value !== 'Sonstiges'
+      ? document.getElementById('f-absagegrund').value + (document.getElementById('f-begruendung').value.trim() ? ' — ' + document.getElementById('f-begruendung').value.trim() : '')
+      : document.getElementById('f-begruendung').value.trim()),
+    gehalt: document.getElementById('f-gehalt').value.trim()
+  };
+
+  if (editId) {
+    const idx = DB.findIndex(x => x.id === editId);
+    if (idx !== -1) DB[idx] = { ...DB[idx], ...entry }; // gespraeche array preserved via spread
+  } else {
+    const maxId = DB.reduce((m, x) => Math.max(m, x.id), 0);
+    DB.push({ id: maxId + 1, ...entry, gespraeche: [], archiviert: false });
+  }
+
+  saveDB();
+  showToast(t('toast_saved'));
+  if (editId) {
+    // Bearbeitung: zurück zur Tabelle
+    resetForm();
+    switchTab('tabelle');
+  } else {
+    // Neuer Eintrag: Formular leeren, bleibe auf neu
+    resetForm();
+    renderDashboard();
+    renderTable();
+  }
+}
+
+function resetForm() {
+  document.getElementById('editId').value = '';
+  document.getElementById('formTitle').textContent = t('form_new');
+  ['f-stelle','f-datum'].forEach(id => document.getElementById(id).classList.remove('error'));
+  ['f-stelle','f-unternehmen','f-datum','f-ort','f-erstreaktion','f-begruendung','f-link','f-ansprechpartner','f-naechster-schritt','f-faellig','f-gehalt'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-absagegrund').value = '';
+  document.getElementById('f-status').value = 'Warten';
+  document.getElementById('f-cv').value = '';
+  document.getElementById('f-vermittler').value = '';
+  selectedFit = 0;
+  [1,2,3].forEach(i => document.getElementById(`fit-${i}`).className = 'fit-btn');
+  setTimeout(updateSelectColors, 0);
+}
+
+// ═══════════════════════════════════════════════
+// NAV & UTILS
+// ═══════════════════════════════════════════════
+
+function updateStufenDatalist() {
+  const stufen = [...new Set(DB.flatMap(e => (e.gespraeche || []).map(g => g.stufe)).filter(s => s && s.trim()))].sort();
+  const stufeEl = document.getElementById('stufe-options');
+  if (stufeEl) stufeEl.innerHTML = stufen.map(s => `<option value="${s}">`).join('');
+
+  const begruendungen = [...new Set(DB.map(e => e.begruendung).filter(b => b && b.trim() && b !== 'Keine'))].sort();
+  const begrEl = document.getElementById('begruendung-options');
+  if (begrEl) begrEl.innerHTML = begruendungen.map(b => `<option value="${b}">`).join('');
+}
+
+// ═══════════════════════════════════════════════
+// CV-VERSIONEN
+// ═══════════════════════════════════════════════
+
+let CV_VERSIONS = [];
+
+function loadCvVersions() {
+  const stored = localStorage.getItem('bt_cv_versions');
+  if (stored) {
+    CV_VERSIONS = JSON.parse(stored);
+  } else {
+    // Seed aus vorhandenen Daten
+    CV_VERSIONS = [...new Set(DB.map(e => e.cv).filter(v => v && v.trim()))]
+      .sort((a, b) => parseFloat(a) - parseFloat(b));
+    saveCvVersions();
+  }
+  updateCvSelect();
+  renderCvVersionList();
+}
+
+function saveCvVersions() {
+  localStorage.setItem('bt_cv_versions', JSON.stringify(CV_VERSIONS));
+}
+
+function updateCvSelect() {
+  const sel = document.getElementById('f-cv');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="" class="placeholder-opt">Bitte wählen ...</option>' +
+    CV_VERSIONS.map(v => `<option value="${v}"${v === current ? ' selected' : ''}>${v}</option>`).join('');
+}
+
+function renderCvVersionList() {
+  const el = document.getElementById('cvVersionList');
+  if (!el) return;
+
+  if (!CV_VERSIONS.length) {
+    el.innerHTML = `<div style="color:var(--text3);font-size:14px">${t('no_cv_versions')}</div>`;
+    applyLang();
+    return;
+  }
+  const usedLabel = LANG === 'en' ? 'application' : 'Bewerbung';
+  const usedLabelPlural = LANG === 'en' ? 'applications' : 'Bewerbungen';
+  el.innerHTML = CV_VERSIONS.map((v, i) => {
+    const usedIn = DB.filter(e => e.cv === v).length;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--accent);flex:1">${v}</span>
+      <span style="font-size:13px;color:var(--text3)">${usedIn} ${usedIn !== 1 ? usedLabelPlural : usedLabel}</span>
+      <button onclick="deleteCvVersion(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;line-height:1" title="${LANG === 'en' ? 'Delete' : 'Löschen'}">×</button>
+    </div>`;
+  }).join('');
+  applyLang();
+}
+
+function addCvVersion() {
+  const input = document.getElementById('newCvInput');
+  const val = input.value.trim();
+  if (!val) {
+    input.classList.add('error');
+    input.focus();
+    showToast(LANG === 'en' ? '⚠ Please enter a version name' : '⚠ Bitte einen Versionsnamen eingeben');
+    setTimeout(() => input.classList.remove('error'), 2000);
+    return;
+  }
+  if (CV_VERSIONS.includes(val)) { showToast(LANG === 'en' ? '⚠ Version already exists' : '⚠ Version bereits vorhanden'); return; }
+  CV_VERSIONS.push(val);
+  saveCvVersions();
+  input.value = '';
+  updateCvSelect();
+  renderCvVersionList();
+  showToast(LANG === 'en' ? '✓ CV version added' : '✓ CV-Version hinzugefügt');
+}
+
+function deleteCvVersion(i) {
+  const v = CV_VERSIONS[i];
+  const usedIn = DB.filter(e => e.cv === v).length;
+  const confirmMsg = LANG === 'en'
+    ? `"${v}" is used in ${usedIn} application(s). Delete anyway?`
+    : `"${v}" wird in ${usedIn} Bewerbung(en) verwendet. Trotzdem löschen?`;
+  if (usedIn > 0 && !confirm(confirmMsg)) return;
+  CV_VERSIONS.splice(i, 1);
+  saveCvVersions();
+  updateCvSelect();
+  renderCvVersionList();
+}
+
+// ═══════════════════════════════════════════════
+// GESPRÄCHSVERLAUF
+// ═══════════════════════════════════════════════
+
+let currentGfEinschaetzung = 0;
+let currentGfEditIdx = null; // null = neues Gespräch, number = bearbeiten
+
+function selectGfEinschaetzung(n) {
+  currentGfEinschaetzung = n;
+  [1,2,3].forEach(i => {
+    const btn = document.getElementById(`gfe-${i}`);
+    if (btn) btn.className = 'fit-btn' + (i === n ? ` active-${n}` : '');
+  });
+}
+
+function toggleGespraechForm(editIdx = null) {
+  const form = document.getElementById('gespraechForm');
+  const btn = document.getElementById('gespraechFormToggle');
+  const isCurrentlyOpen = form.style.display !== 'none';
+
+  // Wenn gleicher Edit-Index nochmal geklickt → schließen
+  if (isCurrentlyOpen && editIdx === currentGfEditIdx) {
+    form.style.display = 'none';
+    btn.textContent = t('btn_add_interview');
+    currentGfEditIdx = null;
+    const tl = document.getElementById('gespraechTimeline');
+    if (tl) tl.style.display = '';
+    return;
+  }
+
+  // Close modal edit if open
+  const modalActionsEdit = document.getElementById('modalActionsEdit');
+  if (modalActionsEdit && modalActionsEdit.style.display !== 'none') {
+    cancelModalEdit();
+  }
+
+  currentGfEditIdx = editIdx;
+  form.style.display = '';
+  btn.textContent = LANG === 'en' ? '× Cancel' : '× Abbrechen';
+  // Hide "no interviews" message while form is open
+  const timeline = document.getElementById('gespraechTimeline');
+  if (timeline && timeline.querySelector('div[style*="color:var(--text3)"]')) {
+    timeline.style.display = 'none';
+  }
+
+  if (editIdx !== null) {
+    // Bearbeitungsmodus: vorhandene Werte laden
+    const e = DB.find(x => x.id === currentModalId);
+    const g = e && e.gespraeche && e.gespraeche[editIdx];
+    if (g) {
+      document.getElementById('gf-datum').value = g.datum || '';
+      document.getElementById('gf-stufe').value = g.stufe || '';
+      document.getElementById('gf-partner').value = g.partner || '';
+      document.getElementById('gf-notiz').value = g.notiz || '';
+      currentGfEinschaetzung = g.einschaetzung || 0;
+      [1,2,3].forEach(i => {
+        const b = document.getElementById(`gfe-${i}`);
+        if (b) b.className = 'fit-btn' + (i === currentGfEinschaetzung ? ` active-${currentGfEinschaetzung}` : '');
+      });
+    }
+  } else {
+    // Neu-Modus: Felder leeren
+    document.getElementById('gf-datum').value = new Date().toISOString().slice(0,10);
+    document.getElementById('gf-stufe').value = '';
+    document.getElementById('gf-partner').value = '';
+    document.getElementById('gf-notiz').value = '';
+    currentGfEinschaetzung = 0;
+    [1,2,3].forEach(i => { const b = document.getElementById(`gfe-${i}`); if(b) b.className = 'fit-btn'; });
+  }
+}
+
+function saveGespraech() {
+  const e = DB.find(x => x.id === currentModalId);
+  if (!e) return;
+  const datum = document.getElementById('gf-datum').value;
+  const stufe = document.getElementById('gf-stufe').value.trim();
+  if (!datum || !stufe) { showToast('⚠ Datum und Stufe sind Pflicht'); return; }
+
+  if (!e.gespraeche) e.gespraeche = [];
+
+  const gespraech = {
+    datum,
+    stufe,
+    partner: document.getElementById('gf-partner').value.trim(),
+    einschaetzung: currentGfEinschaetzung,
+    notiz: document.getElementById('gf-notiz').value.trim()
+  };
+
+  if (currentGfEditIdx !== null) {
+    // Bearbeiten
+    e.gespraeche[currentGfEditIdx] = gespraech;
+  } else {
+    // Neu
+    e.gespraeche.push(gespraech);
+  }
+
+  const wasEdit = currentGfEditIdx !== null;
+
+  e.gespraeche.sort((a, b) => a.datum.localeCompare(b.datum));
+  saveDB();
+  renderGespraechTimeline(e);
+
+  document.getElementById('gespraechForm').style.display = 'none';
+  document.getElementById('gespraechFormToggle').textContent = t('btn_add_interview');
+  currentGfEditIdx = null;
+
+  showToast(wasEdit ? (LANG==='en'?'✓ Interview updated':'✓ Gespräch aktualisiert') : (LANG==='en'?'✓ Interview saved':'✓ Gespräch gespeichert'));
+  updateStufenDatalist();
+}
+
+function deleteGespraech(entryId, idx) {
+  const e = DB.find(x => x.id === entryId);
+  if (!e || !e.gespraeche) return;
+  if (!confirm(LANG==='en'?'Delete this interview?':'Gespräch löschen?')) return;
+  e.gespraeche.splice(idx, 1);
+  // Wenn gerade dieser Eintrag bearbeitet wird → Formular schließen
+  if (currentGfEditIdx === idx) {
+    document.getElementById('gespraechForm').style.display = 'none';
+    document.getElementById('gespraechFormToggle').textContent = t('btn_add_interview');
+    currentGfEditIdx = null;
+  }
+  saveDB();
+  renderGespraechTimeline(e);
+  showToast('✓ Gespräch gelöscht');
+}
+
+function renderGespraechTimeline(e) {
+  const container = document.getElementById('gespraechTimeline');
+  if (!container) return;
+  const gs = e.gespraeche || [];
+  if (!gs.length) {
+    container.innerHTML = `<div style="color:var(--text3);font-size:14px;padding:8px 0">${t('no_interviews')}</div>`;
+    return;
+  }
+  container.innerHTML = gs.map((g, i) => {
+    const einLabel = g.einschaetzung ? (LANG==='en'?['','Poor','Ok','Great']:['','Schlecht','Ok','Sehr gut'])[g.einschaetzung] : null;
+    return `<div class="timeline-entry">
+      <div class="timeline-dot e-${g.einschaetzung || 0}">${g.einschaetzung || '·'}</div>
+      <div class="timeline-body">
+        <div class="timeline-header">
+          <span class="timeline-stufe">${g.stufe}</span>
+          <span class="timeline-date">
+            ${fmt(g.datum)}${einLabel ? ' · ' + einLabel : ''}
+            <button class="timeline-delete" onclick="toggleGespraechForm(${i})" title="${LANG==='en'?'Edit':'Bearbeiten'}" style="color:var(--text3);margin-left:6px">✎</button>
+            <button class="timeline-delete" onclick="deleteGespraech(${e.id}, ${i})" title="${LANG==='en'?'Delete':'Löschen'}">×</button>
+          </span>
+        </div>
+        ${g.partner ? `<div class="timeline-partner">${esc(g.partner)}</div>` : ''}
+        ${g.notiz ? `<div class="timeline-notiz">${esc(g.notiz)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// QUICK STATUS
+// ═══════════════════════════════════════════════
+
+let activeDropdown = null;
+
+function showStatusDropdown(event, entryId) {
+  // Remove existing dropdown
+  if (activeDropdown) { activeDropdown.remove(); activeDropdown = null; }
+
+  const options = STATUS_OPTIONS;
+  const dropdown = document.createElement('div');
+  dropdown.className = 'status-quick-dropdown';
+  dropdown.innerHTML = options.map(s => `<button class="status-quick-option" onclick="setQuickStatus(${entryId},'${s}')">${s}</button>`).join('');
+
+  const pill = event.currentTarget;
+  const rect = pill.getBoundingClientRect();
+  dropdown.style.position = 'fixed';
+  dropdown.style.top = (rect.bottom + 4) + 'px';
+  dropdown.style.left = rect.left + 'px';
+  document.body.appendChild(dropdown);
+  activeDropdown = dropdown;
+
+  setTimeout(() => document.addEventListener('click', () => {
+    if (activeDropdown) { activeDropdown.remove(); activeDropdown = null; }
+  }, { once: true }), 0);
+}
+
+function setQuickStatus(entryId, newStatus) {
+  const e = DB.find(x => x.id === entryId);
+  if (!e) return;
+  e.status = newStatus;
+  saveDB();
+  renderTable();
+  renderDashboard();
+  showToast(`✓ Status: ${newStatus}`);
+}
+
+// ═══════════════════════════════════════════════
+// QUICK NOTIZ
+// ═══════════════════════════════════════════════
+
+function saveQuickNotiz() {
+  const e = DB.find(x => x.id === currentModalId);
+  if (!e) return;
+  const input = document.getElementById('quickNotizInput');
+  const text = input.value.trim();
+  if (!text) return;
+  // Prepend to existing Begründung/Notiz with timestamp
+  const ts = new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit' });
+  e.begruendung = e.begruendung
+    ? `[${ts}] ${text} · ${e.begruendung}`
+    : `[${ts}] ${text}`;
+  saveDB();
+  input.value = '';
+  showToast('✓ Notiz gespeichert');
+  // Refresh modal content
+  openModal(currentModalId);
+}
+
+// ═══════════════════════════════════════════════
+// CSV EXPORT
+// ═══════════════════════════════════════════════
+
+function exportCSV() {
+  const headers = ['ID', t('col_position'), t('label_company'), t('col_date'), t('label_location'), t('label_status'), LANG==='en'?'Highest Stage':'Höchste Stufe', t('label_reaction'), LANG==='en'?'Channel':'Vermittler', t('label_contact'), t('col_fit'), t('label_cv'), t('label_next_step'), t('label_due'), t('label_reason'), LANG==='en'?'Archived':'Archiviert'];
+  const statusMap = {'Warten':t('status_waiting'),'Gespräch':t('status_interview'),'Geschlossen':t('status_closed'),'Abgesagt':t('status_cancelled')};
+  const rows = DB.map(e => [
+    e.id,
+    e.stelle,
+    e.unternehmen,
+    e.datum,
+    e.ort,
+    (e.archiviert ? t('status_archived') : statusMap[e.status] || e.status),
+    getHoechsteStufe(e),
+    e.erstreaktion,
+    e.vermittler || t('opt_direct'),
+    e.ansprechpartner || '',
+    e.fit || '',
+    e.cv || '',
+    e.naechsterSchritt || '',
+    e.faelligAm || '',
+    e.begruendung || '',
+    e.archiviert ? (LANG==='en'?'Yes':'Ja') : (LANG==='en'?'No':'Nein')
+  ].map(v => `"${String(v || '').replace(/"/g, '""')}"`));
+
+  const csv = [headers.map(h => `"${h}"`).join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `applyd_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(LANG==='en'?'✓ CSV exported':'✓ CSV exportiert');
+}
+
+function exportJSON() {
+  const json = JSON.stringify(DB, null, 2);
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `applyd_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(LANG==='en'?'✓ JSON exported':'✓ JSON exportiert');
+}
+
+// ═══════════════════════════════════════════════
+// IMPORT
+// ═══════════════════════════════════════════════
+
+let _importPending = []; // staged entries waiting for confirmation
+
+function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      let data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) throw new Error('Kein Array');
+      // Validate minimal structure
+      data = data.filter(d => d.stelle || d.Stelle);
+      // Normalize: if old format (has 'Stelle' uppercase), run through importSeed
+      if (data.length && data[0].Stelle) {
+        data = importSeed(data);
+      }
+      // Run migration on imported data
+      data = migrateStatus(data);
+      _stageImport(data, 'JSON');
+    } catch (err) {
+      document.getElementById('importStatus').textContent = '⚠ Ungültige JSON-Datei';
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function _stageImport(data, format) {
+  if (!data.length) {
+    document.getElementById('importStatus').textContent = '⚠ ' + t('import_none');
+    return;
+  }
+
+  // Deduplicate: skip entries where stelle+unternehmen+datum already exists
+  const existingKeys = new Set(DB.map(e => `${e.stelle}|${e.unternehmen}|${e.datum}`));
+  const neu = data.filter(e => !existingKeys.has(`${e.stelle}|${e.unternehmen}|${e.datum}`));
+  const dupCount = data.length - neu.length;
+
+  _importPending = neu;
+
+  document.getElementById('importStatus').textContent = '';
+  const preview = document.getElementById('importPreview');
+  const label = document.getElementById('importPreviewLabel');
+  const list = document.getElementById('importPreviewList');
+
+  if (!neu.length) {
+    label.textContent = T[LANG].import_all_exist(format, data.length);
+    list.innerHTML = '';
+    preview.style.display = '';
+    return;
+  }
+
+  label.innerHTML = T[LANG].import_preview(neu.length, dupCount);
+
+  list.innerHTML = neu.map(e => `
+    <div style="display:flex;gap:12px;align-items:baseline;padding:8px 12px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)">
+      <span style="font-size:14px;color:var(--text)">${esc(e.stelle)}</span>
+      <span style="font-size:13px;color:var(--text2)">${esc(e.unternehmen) || '—'}</span>
+      <span style="font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-left:auto">${e.datum || '—'}</span>
+    </div>`).join('');
+
+  preview.style.display = '';
+}
+
+function confirmImport() {
+  if (!_importPending.length) return;
+
+  // Reassign IDs to avoid collisions
+  const maxId = DB.reduce((m, x) => Math.max(m, x.id), 0);
+  _importPending.forEach((e, i) => e.id = maxId + i + 1);
+
+  DB.push(..._importPending);
+  saveDB();
+  renderDashboard();
+  renderTable();
+
+  const count = _importPending.length;
+  _importPending = [];
+  cancelImport();
+  showToast(T[LANG].import_done(count));
+}
+
+function cancelImport() {
+  _importPending = [];
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('importStatus').textContent = '';
+}
+
+function handleAbsagegrund(select, notizId) {
+  const val = select.value;
+  const notiz = document.getElementById(notizId);
+  if (val && val !== 'Sonstiges') {
+    notiz.placeholder = LANG==='en'?'Add a note (optional)':'Ergänzende Notiz (optional)';
+  } else {
+    notiz.placeholder = LANG==='en'?'Free note (optional)':'Freie Notiz (optional)';
+  }
+}
+
+function updateTabBadge() {
+  const overdue = DB.filter(e =>
+    !e.archiviert &&
+    e.faelligAm &&
+    ['aktiv','prozess'].includes(getProzessstatus(e)) &&
+    dayDiff(e.faelligAm) < 0
+  ).length;
+  const badge = document.getElementById('tabBadge');
+  if (!badge) return;
+  if (overdue > 0) {
+    badge.textContent = overdue;
+    badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+
+
+function toggleBurger() {
+  const nav = document.getElementById('mainNav');
+  const btn = document.getElementById('burgerBtn');
+  nav.classList.toggle('open');
+  btn.classList.toggle('open');
+}
+
+// Close burger when tab is clicked
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.getElementById('mainNav').classList.remove('open');
+      document.getElementById('burgerBtn').classList.remove('open');
+    });
+  });
+});
+
+function switchTab(tab) {
+  // Close burger on tab switch
+  document.getElementById('mainNav')?.classList.remove('open');
+  document.getElementById('burgerBtn')?.classList.remove('open');
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['dashboard','tabelle','neu','einstellungen'][i] === tab);
+  });
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(`view-${tab}`).classList.add('active');
+  localStorage.setItem('applyd_tab', tab);
+
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'tabelle') renderTable();
+  if (tab === 'neu') {
+    if (!document.getElementById('editId').value) resetForm();
+    updateStufenDatalist();
+    updateCvSelect();
+    setTimeout(updateSelectColors, 0);
+  }
+  if (tab === 'einstellungen') { loadCvVersions(); applyLang(); }
+}
+
+function fmt(d) {
+  if (!d) return '—';
+  const parts = d.split('-');
+  if (parts.length !== 3) return d;
+  if (LANG === 'en') {
+    // yyyy.mm.dd
+    return `${parts[0]}.${parts[1]}.${parts[2]}`;
+  }
+  // dd.mm.yy (DE default)
+  return `${parts[2]}.${parts[1]}.${parts[0].slice(2)}`;
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  const isError = msg.startsWith('⚠');
+  el.classList.toggle('error', isError);
+  el.classList.add('show');
+  clearTimeout(el._toastTimer);
+  el._toastTimer = setTimeout(() => el.classList.remove('show'), isError ? 4000 : 2500);
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+
+document.addEventListener('click', e => {
+  if (e.target === document.getElementById('detailModal')) closeModal();
+});
+
+// ── BOOT ──
+function updateSelectColors() {
+  document.querySelectorAll('.form-select').forEach(sel => {
+    sel.classList.toggle('placeholder-shown', sel.value === '');
+    sel.addEventListener('change', function() {
+      this.classList.toggle('placeholder-shown', this.value === '');
+    });
+  });
+}
+
+function boot() {
+  LANG = localStorage.getItem('applyd_lang') || 'de';
+  const savedTheme = localStorage.getItem('applyd_theme') || 'dark';
+  if (savedTheme === 'light') document.body.classList.add('light');
+  loadDB();
+  renderDashboard();
+  renderTable();
+  updateStufenDatalist();
+  applyLang();
+  loadCvVersions();
+  // Restore last active tab
+  const lastTab = localStorage.getItem('applyd_tab') || 'dashboard';
+  if (lastTab !== 'dashboard') switchTab(lastTab);
+  const ls = document.getElementById('lastSaved');
+  if (ls) ls.textContent = new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+boot();
+</script>
+</body>
+</html>

@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Applyd — Job Application Tracker</title>
+<meta name="description" content="A data-driven job application tracker. One HTML file. No account, no server, no tracking.">
+<meta property="og:title" content="Applyd — Job Application Tracker">
+<meta property="og:description" content="Track your applications. Measure what matters. One HTML file, no server needed.">
+<meta property="og:url" content="https://konradfrankde.github.io/applyd/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #13161e;
+  --surface2: #1a1e2a;
+  --border: #2a2f3d;
+  --border2: #353b4d;
+  --text: #e2e6f0;
+  --text2: #a8b0c8;
+  --text3: #7e8699;
+  --accent: #4f9ef8;
+  --accent2: #7b68ee;
+  --green: #3ecf8e;
+  --yellow: #f5c842;
+  --red: #f25c5c;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  height: 60px;
+  background: rgba(13,15,20,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+.nav-logo span { color: var(--accent); }
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--text3);
+  text-decoration: none;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--text); }
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.lang-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.lang-toggle button {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lang-toggle button.active,
+.lang-toggle button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-nav {
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.btn-nav:hover { opacity: 0.85; }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 40px 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 800px; height: 600px;
+  background: radial-gradient(ellipse, rgba(79,158,248,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid rgba(79,158,248,0.3);
+  padding: 5px 14px;
+  border-radius: 20px;
+  margin-bottom: 32px;
+  animation: fadeUp 0.6s ease both;
+}
+
+.hero h1 {
+  font-size: clamp(40px, 6vw, 80px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.hero-sub {
+  font-size: clamp(16px, 2vw, 20px);
+  color: var(--text2);
+  max-width: 560px;
+  margin: 0 auto 48px;
+  animation: fadeUp 0.6s 0.2s ease both;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px 32px;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: #3d8ee0;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(79,158,248,0.3);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text2);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-ghost:hover {
+  border-color: var(--text3);
+  color: var(--text);
+}
+
+.hero-meta {
+  margin-top: 56px;
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation: fadeUp 0.6s 0.4s ease both;
+}
+
+.hero-stat {
+  text-align: center;
+}
+
+.hero-stat-val {
+  font-size: 28px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1;
+}
+
+.hero-stat-label {
+  font-size: 12px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── MOCKUP ── */
+.mockup-wrap {
+  padding: 0 40px 80px;
+  max-width: 1100px;
+  margin: 0 auto;
+  animation: fadeUp 0.8s 0.5s ease both;
+}
+
+.mockup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+}
+
+.mockup-bar {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mockup-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.mockup-dots span {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--border2);
+}
+
+.mockup-title {
+  font-size: 12px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.mockup-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 20px;
+}
+
+.mockup-tab {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 12px 20px;
+  color: var(--text3);
+  border-bottom: 2px solid transparent;
+}
+
+.mockup-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.mockup-body {
+  padding: 24px;
+}
+
+.mockup-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.mockup-kpi {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.mockup-kpi-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.mockup-kpi-val {
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.mockup-kpi-sub {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+.mockup-table {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.mockup-table-header {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.mockup-table-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1fr 1fr;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  align-items: center;
+}
+
+.mockup-table-row:last-child { border-bottom: none; }
+
+.mockup-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.pill-blue { background: rgba(79,158,248,0.15); color: var(--accent); }
+.pill-yellow { background: rgba(245,200,66,0.15); color: var(--yellow); }
+.pill-green { background: rgba(62,207,142,0.15); color: var(--green); }
+.pill-red { background: rgba(242,92,92,0.15); color: var(--red); }
+
+.mockup-timer {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+/* ── FEATURES ── */
+section {
+  padding: 100px 40px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.section-sub {
+  font-size: 18px;
+  color: var(--text2);
+  max-width: 560px;
+  margin-bottom: 64px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  transition: border-color 0.2s;
+}
+
+.feature-card:hover { border-color: var(--border2); }
+
+.feature-icon {
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.feature-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.feature-desc {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+/* ── HOW TO ── */
+.howto-section {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.howto-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.howto-step {
+  position: relative;
+}
+
+.howto-num {
+  font-size: 48px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--border2);
+  line-height: 1;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+}
+
+.howto-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.howto-desc {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+.howto-code {
+  display: inline-block;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--accent);
+  margin-top: 8px;
+}
+
+/* ── FAQ ── */
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 720px;
+}
+
+.faq-item {
+  border-bottom: 1px solid var(--border);
+  padding: 24px 0;
+}
+
+.faq-q {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.faq-q::after {
+  content: '+';
+  color: var(--text3);
+  font-size: 20px;
+  font-weight: 400;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+
+.faq-item.open .faq-q::after {
+  transform: rotate(45deg);
+}
+
+.faq-a {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.7;
+  display: none;
+}
+
+.faq-item.open .faq-a { display: block; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 40px;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-left {
+  font-size: 13px;
+  color: var(--text3);
+}
+
+.footer-right {
+  display: flex;
+  gap: 24px;
+}
+
+.footer-right a {
+  font-size: 13px;
+  color: var(--text3);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-right a:hover { color: var(--text); }
+
+/* ── DIVIDER ── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .hero { padding: 100px 24px 60px; }
+  .mockup-wrap { padding: 0 24px 60px; }
+  .mockup-kpis { grid-template-columns: repeat(3, 1fr); }
+  .mockup-tab:not(.active) { display: none; }
+  section { padding: 60px 24px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .howto-grid { grid-template-columns: 1fr; gap: 32px; }
+  footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
+  .hero-meta { gap: 24px; }
+}
+
+@media (max-width: 480px) {
+  .mockup-kpis { grid-template-columns: repeat(2, 1fr); }
+  .mockup-table-header, .mockup-table-row { grid-template-columns: 2fr 1fr 1fr; }
+  .mockup-table-header span:nth-child(n+4),
+  .mockup-table-row span:nth-child(n+4) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo"><span>///</span> Applyd</div>
+  <ul class="nav-links">
+    <li><a href="#features" data-de="Features" data-en="Features">Features</a></li>
+    <li><a href="#howto" data-de="Anleitung" data-en="How-To">Anleitung</a></li>
+    <li><a href="#faq" data-de="FAQ" data-en="FAQ">FAQ</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="lang-toggle">
+      <button class="active" onclick="setLang('en')">EN</button>
+      <button onclick="setLang('de')">DE</button>
+    </div>
+    <a href="https://github.com/KonradFrankDE/applyd/raw/main/applyd.html" class="btn-nav" data-de="↓ Herunterladen" data-en="↓ Download">↓ Download</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div>
+    <div class="hero-tag" data-de="Kostenlos · Open Source · Keine Anmeldung" data-en="Free · Open Source · No sign-up">Free · Open Source · No sign-up</div>
+    <h1 data-de="Bewirb dich <em>klüger</em>,<br>nicht öfter." data-en="Apply <em>smarter</em>,<br>not more.">Apply <em>smarter</em>,<br>not more.</h1>
+    <p class="hero-sub" data-de="Ein datengetriebener Bewerbungs-Tracker. Eine HTML-Datei. Kein Konto, kein Server, kein Tracking." data-en="A data-driven job application tracker. One HTML file. No account, no server, no tracking.">A data-driven job application tracker. One HTML file. No account, no server, no tracking.</p>
+    <div class="hero-actions">
+      <a href="https://github.com/KonradFrankDE/applyd/raw/main/applyd.html" class="btn-primary">
+        <span>↓</span> <span data-de="applyd.html herunterladen" data-en="Download applyd.html">Download applyd.html</span>
+      </a>
+      <a href="https://github.com/KonradFrankDE/applyd" class="btn-ghost" target="_blank" data-de="GitHub ansehen" data-en="View on GitHub">View on GitHub</a>
+    </div>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <div class="hero-stat-val">1</div>
+        <div class="hero-stat-label" data-de="Datei" data-en="File">File</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val">0</div>
+        <div class="hero-stat-label" data-de="Abhängigkeiten" data-en="Dependencies">Dependencies</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val" style="color:var(--green)">100%</div>
+        <div class="hero-stat-label" data-de="Lokal" data-en="Local">Local</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-val" style="color:var(--accent)">MIT</div>
+        <div class="hero-stat-label" data-de="Lizenz" data-en="License">License</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MOCKUP ── -->
+<div class="mockup-wrap reveal">
+  <div class="mockup">
+    <div class="mockup-bar">
+      <div class="mockup-dots"><span></span><span></span><span></span></div>
+      <div class="mockup-title">/// Applyd</div>
+    </div>
+    <div class="mockup-tabs">
+      <div class="mockup-tab active">Dashboard</div>
+      <div class="mockup-tab" data-de="Bewerbungen" data-en="Applications">Applications</div>
+      <div class="mockup-tab" data-de="+ Eintrag" data-en="+ New Entry">+ New Entry</div>
+      <div class="mockup-tab" data-de="Einstellungen" data-en="Settings">Settings</div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-kpis">
+        <div class="mockup-kpi">
+          <div class="mockup-kpi-label" data-de="Gesamt" data-en="Total">Total</div>
+          <div class="mockup-kpi-val">47</div>
+          <div class="mockup-kpi-sub" data-de="12 aktiv" data-en="12 active">12 active</div>
+        </div>
+        <div class="mockup-kpi">
+          <div class="mockup-kpi-label" data-de="Rückmeldungen" data-en="Responses">Responses</div>
+          <div class="mockup-kpi-val" style="color:var(--green)">74%</div>
+          <div class="mockup-kpi-sub">Ø 8d · Med. 5d</div>
+        </div>
+        <div class="mockup-kpi">
+          <div class="mockup-kpi-label" data-de="Gesprächsrate" data-en="Interview Rate">Interview Rate</div>
+          <div class="mockup-kpi-val" style="color:var(--yellow)">31%</div>
+          <div class="mockup-kpi-sub" data-de="14 mit ≥1 Gespräch" data-en="14 with ≥1 interview">14 with ≥1 interview</div>
+        </div>
+        <div class="mockup-kpi">
+          <div class="mockup-kpi-label" data-de="Ghosting" data-en="Ghosting">Ghosting</div>
+          <div class="mockup-kpi-val" style="color:var(--red)">17%</div>
+          <div class="mockup-kpi-sub" data-de="2 ohne Reaktion" data-en="2 without response">2 without response</div>
+        </div>
+        <div class="mockup-kpi">
+          <div class="mockup-kpi-label" data-de="Frequenz" data-en="Frequency">Frequency</div>
+          <div class="mockup-kpi-val" style="color:#06b6d4">2.1<span style="font-size:14px;font-weight:400">/w</span></div>
+          <div class="mockup-kpi-sub" data-de="↑12% aktuell" data-en="↑12% recently">↑12% recently</div>
+        </div>
+      </div>
+      <div class="mockup-table">
+        <div class="mockup-table-header">
+          <span data-de="Stelle" data-en="Position">Position</span>
+          <span data-de="Unternehmen" data-en="Company">Company</span>
+          <span data-de="Status" data-en="Status">Status</span>
+          <span data-de="Wartezeit" data-en="Waiting">Waiting</span>
+          <span data-de="Stufe" data-en="Stage">Stage</span>
+        </div>
+        <div class="mockup-table-row">
+          <span style="font-weight:600">Head of Engineering</span>
+          <span style="color:var(--text2)">Acme GmbH</span>
+          <span><span class="mockup-pill pill-yellow" data-de="Gespräch" data-en="Interviewing">Interviewing</span></span>
+          <span><span class="mockup-timer" style="background:rgba(245,200,66,0.12);color:var(--yellow)">18d</span></span>
+          <span style="color:var(--text2);font-size:11px" data-de="2. Gespräch" data-en="2nd Interview">2nd Interview</span>
+        </div>
+        <div class="mockup-table-row">
+          <span style="font-weight:600">VP Engineering</span>
+          <span style="color:var(--text2)">Scale Corp</span>
+          <span><span class="mockup-pill pill-blue" data-de="Warten" data-en="Waiting">Waiting</span></span>
+          <span><span class="mockup-timer" style="background:rgba(79,158,248,0.12);color:var(--accent)">5d</span></span>
+          <span style="color:var(--text3);font-size:11px">—</span>
+        </div>
+        <div class="mockup-table-row">
+          <span style="font-weight:600">Engineering Manager</span>
+          <span style="color:var(--text2)">TechBase AG</span>
+          <span><span class="mockup-pill pill-green" data-de="Gespräch" data-en="Interviewing">Interviewing</span></span>
+          <span><span class="mockup-timer" style="background:rgba(62,207,142,0.12);color:var(--green)">3d</span></span>
+          <span style="color:var(--text2);font-size:11px" data-de="Vorgespräch" data-en="Screening">Screening</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ── FEATURES ── -->
+<section id="features">
+  <div class="section-label" data-de="Was es kann" data-en="Capabilities">Capabilities</div>
+  <h2 class="section-title" data-de="Alles was du brauchst,<br>nichts was du nicht brauchst." data-en="Everything you need,<br>nothing you don't.">Everything you need,<br>nothing you don't.</h2>
+  <p class="section-sub" data-de="Applyd ist bewusst schlank. Kein Abo, kein Onboarding, keine Features die dich ablenken." data-en="Applyd is deliberately lean. No subscription, no onboarding, no features that distract you.">Applyd is deliberately lean. No subscription, no onboarding, no features that distract you.</p>
+  <div class="features-grid reveal">
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-title" data-de="Dashboard & KPIs" data-en="Dashboard & KPIs">Dashboard & KPIs</div>
+      <div class="feature-desc" data-de="Rückmeldungsrate, Gesprächsrate, Ghosting, Frequenz — auf einen Blick. Mit Wartezeit-Ampel für aktive Prozesse." data-en="Response rate, interview rate, ghosting, frequency — at a glance. With a waiting-time indicator for active processes.">Response rate, interview rate, ghosting, frequency — at a glance. With a waiting-time indicator for active processes.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title" data-de="Auswertungen" data-en="Analytics">Analytics</div>
+      <div class="feature-desc" data-de="Trichter, Stufentrichter, CV-Version Performance, Kanal-Konversion, monatliche Aktivität, Top Absagegründe." data-en="Funnel, stage breakdown, CV version performance, channel conversion, monthly activity, top rejection reasons.">Funnel, stage breakdown, CV version performance, channel conversion, monthly activity, top rejection reasons.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🗂️</div>
+      <div class="feature-title" data-de="Gesprächsverlauf" data-en="Interview History">Interview History</div>
+      <div class="feature-desc" data-de="Pro Bewerbung: Gesprächsstufen, Partner, persönliche Einschätzung, Notizen — als Timeline." data-en="Per application: interview stages, partners, personal rating, notes — as a timeline.">Per application: interview stages, partners, personal rating, notes — as a timeline.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title" data-de="Quick-Actions" data-en="Quick Actions">Quick Actions</div>
+      <div class="feature-desc" data-de="Status per Klick wechseln, Schnellnotiz hinzufügen, Nächsten Schritt setzen — ohne Modal zu öffnen." data-en="Change status with one click, add a quick note, set next step — without opening a modal.">Change status with one click, add a quick note, set next step — without opening a modal.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📤</div>
+      <div class="feature-title" data-de="Export & Import" data-en="Export & Import">Export & Import</div>
+      <div class="feature-desc" data-de="CSV für Excel und Numbers, JSON für Backup und Re-Import mit Duplikat-Erkennung." data-en="CSV for Excel and Numbers, JSON for backup and re-import with duplicate detection.">CSV for Excel and Numbers, JSON for backup and re-import with duplicate detection.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <div class="feature-title" data-de="DE / EN · Hell / Dunkel" data-en="DE / EN · Dark / Light">DE / EN · Dark / Light</div>
+      <div class="feature-desc" data-de="Vollständig zweisprachig, helles und dunkles Theme — Einstellung wird gespeichert." data-en="Fully bilingual, light and dark theme — preferences are saved.">Fully bilingual, light and dark theme — preferences are saved.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── HOW TO ── -->
+<section id="howto" class="howto-section" style="max-width:100%;padding:100px 0;">
+  <div style="max-width:1100px;margin:0 auto;padding:0 40px;">
+    <div class="section-label" data-de="So geht's" data-en="How It Works">How It Works</div>
+    <h2 class="section-title" data-de="In drei Schritten loslegen." data-en="Up and running in three steps.">Up and running in three steps.</h2>
+    <div class="howto-grid reveal" style="margin-top:56px;">
+      <div class="howto-step">
+        <div class="howto-num">01</div>
+        <div class="howto-title" data-de="Herunterladen" data-en="Download">Download</div>
+        <div class="howto-desc" data-de="Lade die Datei herunter. Keine Installation, kein npm, kein Build-Step." data-en="Download the file. No installation, no npm, no build step.">Download the file. No installation, no npm, no build step.</div>
+        <div class="howto-code">applyd.html</div>
+      </div>
+      <div class="howto-step">
+        <div class="howto-num">02</div>
+        <div class="howto-title" data-de="Öffnen" data-en="Open">Open</div>
+        <div class="howto-desc" data-de="Öffne die Datei in jedem modernen Browser. Chrome, Firefox, Safari, Edge — alles funktioniert." data-en="Open it in any modern browser. Chrome, Firefox, Safari, Edge — all work.">Open it in any modern browser. Chrome, Firefox, Safari, Edge — all work.</div>
+        <div class="howto-code" data-de="Doppelklick → fertig" data-en="Double-click → done">Double-click → done</div>
+      </div>
+      <div class="howto-step">
+        <div class="howto-num">03</div>
+        <div class="howto-title" data-de="Tracken" data-en="Track">Track</div>
+        <div class="howto-desc" data-de="Bewerbungen erfassen, Gespräche dokumentieren, Auswertungen lesen. Alle Daten bleiben lokal." data-en="Log applications, document interviews, read analytics. All data stays local.">Log applications, document interviews, read analytics. All data stays local.</div>
+        <div class="howto-code">localStorage ✓</div>
+      </div>
+    </div>
+    <div style="margin-top:56px;text-align:center;">
+      <a href="https://github.com/KonradFrankDE/applyd/raw/main/applyd.html" class="btn-primary">
+        <span>↓</span> <span data-de="Jetzt herunterladen" data-en="Download now">Download now</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── FAQ ── -->
+<section id="faq">
+  <div class="section-label">FAQ</div>
+  <h2 class="section-title" data-de="Häufige Fragen." data-en="Common questions.">Common questions.</h2>
+  <div class="faq-list reveal" style="margin-top:48px;">
+    <div class="faq-item">
+      <div class="faq-q" data-de="Wo werden meine Daten gespeichert?" data-en="Where is my data stored?">Where is my data stored?</div>
+      <div class="faq-a" data-de="Ausschließlich in deinem Browser (localStorage). Keine Daten verlassen dein Gerät. Kein Server, kein Cloud-Speicher, kein Account." data-en="Exclusively in your browser (localStorage). No data leaves your device. No server, no cloud storage, no account.">Exclusively in your browser (localStorage). No data leaves your device. No server, no cloud storage, no account.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-de="Was passiert, wenn ich den Browser-Cache lösche?" data-en="What happens if I clear my browser cache?">What happens if I clear my browser cache?</div>
+      <div class="faq-a" data-de="Deine Daten gehen verloren. Exportiere regelmäßig als JSON-Backup — Import ist mit einem Klick möglich." data-en="Your data will be lost. Export regularly as a JSON backup — re-import takes one click.">Your data will be lost. Export regularly as a JSON backup — re-import takes one click.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-de="Funktioniert Applyd offline?" data-en="Does Applyd work offline?">Does Applyd work offline?</div>
+      <div class="faq-a" data-de="Ja, vollständig. Keine externen Abhängigkeiten, kein CDN, keine Fonts von Drittanbietern. Die Datei läuft komplett lokal." data-en="Yes, completely. No external dependencies, no CDN, no third-party fonts. The file runs entirely locally.">Yes, completely. No external dependencies, no CDN, no third-party fonts. The file runs entirely locally.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-de="Kann ich meine Daten auf mehreren Geräten nutzen?" data-en="Can I use my data across multiple devices?">Can I use my data across multiple devices?</div>
+      <div class="faq-a" data-de="Nicht automatisch — dafür gibt es keinen Sync. Du kannst Daten aber per JSON-Export auf ein anderes Gerät übertragen und dort importieren." data-en="Not automatically — there's no sync. You can transfer data via JSON export and import it on another device.">Not automatically — there's no sync. You can transfer data via JSON export and import it on another device.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-de="Ist der Code Open Source?" data-en="Is the code open source?">Is the code open source?</div>
+      <div class="faq-a" data-de="Ja, MIT-Lizenz. Du kannst den Code lesen, forken, anpassen und weitergeben. Der Urheberrechtsvermerk muss erhalten bleiben." data-en="Yes, MIT license. You can read, fork, modify, and distribute the code. The copyright notice must be retained.">Yes, MIT license. You can read, fork, modify, and distribute the code. The copyright notice must be retained.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-de="Wie wurde Applyd gebaut?" data-en="How was Applyd built?">How was Applyd built?</div>
+      <div class="faq-a" data-de="In Zusammenarbeit mit Claude (Anthropic) — ohne eine einzige Zeile Code manuell zu schreiben. Ein Experiment in Vibe-Coding und dem, was möglich ist wenn man sich auf das Problem statt die Implementierung konzentriert." data-en="In collaboration with Claude (Anthropic) — without writing a single line of code manually. An experiment in vibe-coding and what's possible when you focus on the problem rather than the implementation.">In collaboration with Claude (Anthropic) — without writing a single line of code manually. An experiment in vibe-coding and what's possible when you focus on the problem rather than the implementation.</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-left">
+    © 2026 <a href="https://www.linkedin.com/in/konrad-frank" target="_blank" style="color:var(--text3);text-decoration:none;border-bottom:1px solid var(--border);">Konrad Frank</a> · MIT License · Built with <a href="https://claude.ai" target="_blank" style="color:var(--text3);text-decoration:none;border-bottom:1px solid var(--border);">Claude</a>
+  </div>
+  <div class="footer-right">
+    <a href="https://github.com/KonradFrankDE/applyd" target="_blank">GitHub</a>
+    <a href="https://github.com/KonradFrankDE/applyd/raw/main/applyd.html" data-de="Herunterladen" data-en="Download">Download</a>
+    <a href="https://www.linkedin.com/in/konrad-frank" target="_blank">LinkedIn</a>
+  </div>
+</footer>
+
+<script>
+// ── LANGUAGE ──
+let LANG = 'en';
+
+function setLang(lang) {
+  LANG = lang;
+  document.querySelectorAll('.lang-toggle button').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+  });
+  document.querySelectorAll('[data-' + lang + ']').forEach(el => {
+    const val = el.getAttribute('data-' + lang);
+    if (el.tagName === 'INPUT') {
+      el.placeholder = val;
+    } else {
+      el.innerHTML = val;
+    }
+  });
+}
+
+// ── FAQ TOGGLE ──
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => {
+    const item = q.parentElement;
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+
+// ── SCROLL REVEAL ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── INIT ──
+setLang('en');
+</script>
+</body>
+</html>

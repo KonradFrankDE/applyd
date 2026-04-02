@@ -14,7 +14,7 @@ Applyd tracks your job applications and turns them into insight:
 
 - **Dashboard** — 5 KPIs at a glance: response rate, interview rate, ghosting, frequency, total
 - **Active Applications** — waiting time per application, next steps, due dates
-- **Analytics** — funnel, stage breakdown, CV version performance, channel vs. fit conversion, monthly activity, rejection patterns
+- **Analytics** — funnel, stage breakdown, CV version performance, cover letter performance, role fit distribution, monthly activity, rejection patterns
 - **Application log** — full table with quick-status, search, and filter
 - **Interview history** — per-application timeline with stage, partner, rating, notes
 - **Export** — CSV (Excel/Numbers) and JSON backup
@@ -50,7 +50,7 @@ All data is saved in your browser's `localStorage`. Nothing leaves your device.
 
 Each application tracks:
 
-`Position · Company · Date · Location · Status · First response · CV version · Role fit (1–3) · Channel · Contact · Next step · Due date · Salary expectation · Rejection reason · Link · Interview history`
+`Position · Company · Date · Location · Status · First response · CV version · Cover letter (yes/no) · Role fit (1–3) · Channel · Contact · Next step · Due date · Salary expectation · Rejection reason · Link · Interview history`
 
 **Status values:** Waiting → Interviewing → Closed / Self-cancelled
 

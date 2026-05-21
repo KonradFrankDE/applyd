@@ -162,6 +162,7 @@
   }
 
   .kpi {
+    position: relative;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius2);
@@ -278,6 +279,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-bottom: 14px;
   }
 
   .funnel-label {
@@ -480,6 +482,8 @@
   .timer-badge.green { background: rgba(62,207,142,0.12); color: var(--green); }
   .timer-badge.yellow { background: rgba(245,200,66,0.12); color: var(--yellow); }
   .timer-badge.red { background: rgba(242,92,92,0.12); color: var(--red); }
+  .timer-badge.accent { background: rgba(79,158,248,0.12); color: var(--accent); }
+  .timer-badge.text3 { background: transparent; color: var(--text3); }
 
   .dot {
     width: 6px; height: 6px;
@@ -1328,6 +1332,37 @@
     .cv-grid { grid-template-columns: repeat(3, 1fr); }
     main { padding: 12px; }
   }
+  /* ── CLICKABLE HINTS ── */
+  .kpi.clickable { cursor:pointer; border-color:rgba(79,158,248,0.25); transition:border-color 0.15s,background 0.15s; }
+  .kpi.clickable::after { content:'↗'; position:absolute; top:10px; right:12px; font-size:11px; color:rgba(79,158,248,0.45); line-height:1; }
+  .kpi.clickable:hover { border-color:var(--accent); background:var(--surface3); }
+  .kpi.clickable:hover::after { color:var(--accent); }
+
+  .funnel-row.clickable { cursor:pointer; border-radius:var(--radius); transition:background 0.15s; padding-left:4px; padding-right:20px; position:relative; }
+  .funnel-row.clickable::after { content:'↗'; position:absolute; right:4px; top:50%; transform:translateY(-50%); font-size:11px; color:rgba(79,158,248,0.35); }
+  .funnel-row.clickable:hover { background:var(--surface2); }
+  .funnel-row.clickable:hover::after { color:var(--accent); }
+
+  .cv-card { cursor:pointer; border-color:rgba(79,158,248,0.25); transition:border-color 0.15s,background 0.15s; position:relative; }
+  .cv-card::after { content:'↗'; position:absolute; top:8px; right:8px; font-size:10px; color:rgba(79,158,248,0.4); line-height:1; }
+  .cv-card:hover { border-color:var(--accent); background:var(--surface3); }
+  .cv-card:hover::after { color:var(--accent); }
+
+  /* ── CV + LIST MODAL ── */
+  .cv-modal-header { display:flex; align-items:baseline; gap:12px; margin-bottom:20px; }
+  .cv-modal-title { font-family:ui-monospace,'Cascadia Code','SF Mono',monospace; font-size:22px; font-weight:700; color:var(--accent); }
+  .cv-modal-stats { font-size:14px; color:var(--text3); }
+  .cv-modal-list { display:flex; flex-direction:column; gap:8px; max-height:380px; overflow-y:auto; }
+  .cv-modal-row { display:flex; align-items:center; justify-content:space-between; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; cursor:pointer; transition:border-color 0.15s; }
+  .cv-modal-row:hover { border-color:var(--accent); }
+  .cv-modal-row.success { border-left:3px solid var(--green); }
+  .cv-modal-row.no-success { border-left:3px solid var(--border); }
+  .cv-modal-stelle { font-size:14px; font-weight:600; color:var(--text); margin-bottom:2px; }
+  .cv-modal-unternehmen { font-size:13px; color:var(--text3); }
+  .cv-modal-badge { font-size:12px; font-weight:700; padding:3px 10px; border-radius:12px; flex-shrink:0; margin-left:12px; }
+  .badge-success { background:rgba(62,207,142,0.12); color:var(--green); }
+  .badge-fail { background:rgba(126,134,153,0.1); color:var(--text3); }
+
 </style>
 </head>
 <body>
@@ -1394,10 +1429,10 @@
         <div id="cvChart"></div>
       </div>
       <div class="chart-card">
-        <div class="chart-card-title" data-langkey="chart_broker_title">Vermittler · Rolle-Fit</div>
-        <p class="chart-desc" data-langkey="chart_broker_desc">Konversionsrate nach Kanal (Direkt vs. Headhunter) und nach deiner eigenen Einschätzung der Rollenpässung.</p>
-        <div id="reaktionChart"></div>
-        <div style="margin-top:20px" class="chart-card-title" data-langkey="chart_fit_title">Rolle-Fit Verteilung</div>
+        <div class="chart-card-title" data-langkey="chart_anschreiben_title">Anschreiben-Performance</div>
+        <p class="chart-desc" data-langkey="chart_anschreiben_desc">Einladungsrate zum 1. Gespräch — mit vs. ohne Anschreiben.</p>
+        <div id="anschreibenChart"></div>
+        <div style="margin:40px 0 20px" class="chart-card-title" data-langkey="chart_fit_title">Rolle-Fit Verteilung</div>
         <div class="bar-chart" id="fitChart"></div>
       </div>
     </div>
@@ -1501,6 +1536,14 @@
           <label class="form-label" data-langkey="label_cv">CV-Version</label>
           <select class="form-select" id="f-cv">
             <option value="" class="placeholder-opt">Bitte wählen ...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-langkey="label_anschreiben">Anschreiben</label>
+          <select class="form-select" id="f-anschreiben">
+            <option value="" class="placeholder-opt" data-langopt="opt_unknown">Keine Angabe</option>
+            <option value="ja" data-langopt="opt_yes">Ja</option>
+            <option value="nein" data-langopt="opt_no">Nein</option>
           </select>
         </div>
         <div class="form-group full">
@@ -1760,6 +1803,16 @@ const T = {
     label_status: 'Status',
     label_reaction: 'Erste Rückmeldung am',
     label_cv: 'CV-Version',
+    label_anschreiben: 'Anschreiben',
+    opt_yes: 'Ja',
+    opt_no: 'Nein',
+    opt_unknown: 'Keine Angabe',
+    anschreiben_label: 'Anschreiben',
+    anschreiben_yes: 'Ja',
+    anschreiben_no: 'Nein',
+    anschreiben_pct: 'Einladungsrate',
+    chart_anschreiben_title: 'Anschreiben-Performance',
+    chart_anschreiben_desc: 'Einladungsrate zum 1. Gespräch — mit vs. ohne Anschreiben.',
     label_fit: 'Rolle-Fit',
     label_next_step: 'Nächster Schritt',
     label_due: 'Fällig am',
@@ -1914,6 +1967,16 @@ const T = {
     label_status: 'Status',
     label_reaction: 'First Response on',
     label_cv: 'CV Version',
+    label_anschreiben: 'Cover Letter',
+    opt_yes: 'Yes',
+    opt_no: 'No',
+    opt_unknown: 'Not specified',
+    anschreiben_label: 'Cover Letter',
+    anschreiben_yes: 'Yes',
+    anschreiben_no: 'No',
+    anschreiben_pct: 'Invite rate',
+    chart_anschreiben_title: 'Cover Letter Performance',
+    chart_anschreiben_desc: 'Interview invite rate — with vs. without cover letter.',
     label_fit: 'Role Fit',
     label_next_step: 'Next Step',
     label_due: 'Due Date',
@@ -2338,13 +2401,15 @@ function getAbsagequalitaet(e) {
 
 function daysSince(dateStr) {
   if (!dateStr) return null;
-  const d = new Date(dateStr);
+  const d = parseLocal(dateStr);
   const now = new Date();
-  return Math.floor((now - d) / 86400000);
+  const nowLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.floor((nowLocal - d) / 86400000);
 }
 
 function timerColor(days) {
-  if (days === null) return 'green';
+  if (days === null) return 'text3';
+  if (days < 0) return 'accent';
   if (days <= 7) return 'green';
   if (days <= 14) return 'yellow';
   return 'red';
@@ -2352,6 +2417,7 @@ function timerColor(days) {
 
 function timerLabel(days) {
   if (days === null) return '—';
+  if (days < 0) return `in ${Math.abs(days)}d`;
   return `${days}d`;
 }
 
@@ -2377,8 +2443,8 @@ function renderDashboard() {
   const aktiv = DB.filter(e => ['aktiv','prozess'].includes(getProzessstatus(e)) && !e.archiviert).length;
 
   // Ghosting: Pending ohne je eine Reaktion (nicht archiviert)
-  const ghosting = DB.filter(e => (e.status === 'Warten' || e.status === 'Pending') && !e.erstreaktion && !e.archiviert).length;
-  const ghostingRate = aktiv ? Math.round(ghosting / aktiv * 100) : 0;
+  const ghosting = DB.filter(e => !e.erstreaktion && (!e.gespraeche || !e.gespraeche.length) && e.status !== 'Gespräch' && e.status !== 'Geschlossen').length;
+  const ghostingRate = DB.length ? Math.round(ghosting / DB.length * 100) : 0;
 
   // Ø Reaktionszeit + Median
   const reaktionszeiten = DB
@@ -2419,12 +2485,12 @@ function renderDashboard() {
       <div class="kpi-value" style="color:var(--green)">${reaktionsrate}%</div>
       <div class="kpi-sub">${mitReaktion} ${LANG==='en'?'of':'von'} ${total} · Ø ${avgReaktion !== null ? avgReaktion + 'd' : '—'} (Med. ${medianReaktion !== null ? medianReaktion + 'd' : '—'})</div>
     </div>
-    <div class="kpi yellow">
+    <div class="kpi yellow clickable" onclick="openListModal('gespraech')">
       <div class="kpi-label">${t('kpi_interviews')}</div>
       <div class="kpi-value" style="color:var(--yellow)">${gespraechsrate}%</div>
       <div class="kpi-sub">${mitGespraech} ${LANG==='en'?'with ≥1 interview':'mit ≥1 Gespräch'}</div>
     </div>
-    <div class="kpi red">
+    <div class="kpi red clickable" onclick="openListModal('ghosting')">
       <div class="kpi-label">${t('kpi_ghosting')}</div>
       <div class="kpi-value" style="color:var(--red)">${ghostingRate}%</div>
       <div class="kpi-sub">${ghosting} ${LANG==='en'?'active without response':'aktive ohne Reaktion'}</div>
@@ -2441,10 +2507,11 @@ function renderDashboard() {
   renderFunnel(total, mitReaktion, mitGespraech, absagen, begruendet);
   renderStufenTrichter();
   renderCVChart();
-  renderReaktionChart();
   renderFitChart();
+  renderAnschreibenChart();
   renderTimeline();
   renderBegruendungen();
+  renderAnschreibenChart();
 }
 
 let timerSort = { field: 'days', dir: -1 };
@@ -2502,26 +2569,25 @@ function renderTimerTable() {
 
 function renderStufenTrichter() {
   const total = DB.length;
-  // Count entries that reached each stage (at any point in gespraeche)
-  const hasStudfe = (e, stufen) => (e.gespraeche || []).some(g => stufen.some(s => g.stufe && g.stufe.includes(s)));
+  const withInterviews = DB.filter(e => (e.gespraeche || []).length > 0);
 
-  const vorg  = DB.filter(e => hasStudfe(e, ['Vorgespräch'])).length;
-  const erst  = DB.filter(e => hasStudfe(e, ['1. Gespräch'])).length;
-  const zweit = DB.filter(e => hasStudfe(e, ['2. Gespräch'])).length;
-  const dritt = DB.filter(e => hasStudfe(e, ['3. Gespräch', '3. Vorgespräch'])).length;
+  const stufe1 = withInterviews.filter(e => e.gespraeche.length >= 1).length;
+  const stufe2 = withInterviews.filter(e => e.gespraeche.length >= 2).length;
+  const stufe3 = withInterviews.filter(e => e.gespraeche.length >= 3).length;
+  const stufe4 = withInterviews.filter(e => e.gespraeche.length >= 4).length;
 
   const rows = [
-    { label: LANG==='en'?'HR Screening':'Vorgespräch HR', n: vorg,  base: total, color: 'var(--accent)' },
-    { label: LANG==='en'?'1st Interview':'1. Gespräch',   n: erst,  base: vorg,  color: 'var(--yellow)' },
-    { label: LANG==='en'?'2nd Interview':'2. Gespräch',   n: zweit, base: erst,  color: 'var(--orange)' },
-    { label: LANG==='en'?'3rd+ Interview':'3.+ Gespräch', n: dritt, base: zweit || erst, color: 'var(--green)' },
+    { label: LANG==='en'?'≥1 Interview':'≥1 Gespräch',  n: stufe1, base: total,  color: 'var(--accent)',  minStufe: 1 },
+    { label: LANG==='en'?'≥2 Interviews':'≥2 Gespräche', n: stufe2, base: stufe1, color: 'var(--yellow)', minStufe: 2 },
+    { label: LANG==='en'?'≥3 Interviews':'≥3 Gespräche', n: stufe3, minStufe: 3, base: stufe2, color: 'var(--orange)' },
+    { label: LANG==='en'?'≥4 Interviews':'≥4 Gespräche', n: stufe4, minStufe: 4, base: stufe3 || stufe2, color: 'var(--green)' },
   ];
 
   document.getElementById('stufenTrichterChart').innerHTML = rows.map(r => {
     const pctOfTotal = total ? Math.round(r.n / total * 100) : 0;
     const pctOfPrev  = r.base ? Math.round(r.n / r.base * 100) : 0;
     return `
-    <div class="funnel-row">
+    <div class="funnel-row clickable" onclick="openListModal('stufe', ${r.minStufe})">
       <span class="funnel-label">${r.label}</span>
       <div class="funnel-bar-wrap">
         <div class="funnel-bar" style="width:${pctOfTotal}%;background:${r.color}">
@@ -2585,39 +2651,12 @@ function renderCVChart() {
     const d = cvMap[cv];
     const rate = d.total ? Math.round(d.gespraech/d.total*100) : 0;
     const rateColor = rate >= 40 ? 'var(--green)' : rate >= 20 ? 'var(--yellow)' : 'var(--text3)';
-    return `<div class="cv-card">
+    return `<div class="cv-card" onclick="openCvModal('${cv}')">
       <div class="cv-version">v${cv}</div>
       <div class="cv-stats">${d.total} Bew.<br>${d.gespraech} Gesp.</div>
       <div class="cv-rate" style="color:${rateColor}">${rate}%</div>
     </div>`;
   }).join('')}</div>`;
-}
-
-function renderReaktionChart() {
-  const counts = { 'Direkt': 0, 'Headhunter': 0, 'Arbeitsvermittlung': 0 };
-  const gespraeche = { 'Direkt': 0, 'Headhunter': 0, 'Arbeitsvermittlung': 0 };
-  DB.forEach(e => {
-    const v = e.vermittler || 'Direkt';
-    if (counts[v] !== undefined) {
-      counts[v]++;
-      if (getHoechsteStufe(e)) gespraeche[v]++;
-    }
-  });
-  const total = DB.length;
-  const colors = { 'Direkt': 'var(--accent)', 'Headhunter': 'var(--yellow)', 'Arbeitsvermittlung': 'var(--green)' };
-  const labels = { 'Direkt': t('opt_direct'), 'Headhunter': t('opt_headhunter'), 'Arbeitsvermittlung': LANG==='en'?'Agency':'Vermittlung' };
-
-  document.getElementById('reaktionChart').innerHTML = Object.entries(counts).map(([k, v]) => {
-    const convRate = v ? Math.round(gespraeche[k]/v*100) : 0;
-    return `
-    <div class="reaktion-row">
-      <span class="reaktion-label">${labels[k]}</span>
-      <div class="reaktion-bar-wrap">
-        <div class="reaktion-bar" style="width:${total ? Math.round(v/total*100) : 0}%;background:${colors[k]}"></div>
-      </div>
-      <span class="reaktion-val">${v} · <span style="color:${colors[k]}">${convRate}%↑</span></span>
-    </div>`;
-  }).join('');
 }
 
 function renderFitChart() {
@@ -2670,6 +2709,107 @@ function renderTimeline() {
   `).join('');
 }
 
+
+function renderAnschreibenChart() {
+  const el = document.getElementById('anschreibenChart');
+  if (!el) return;
+
+  const withA  = DB.filter(e => e.anschreiben === 'ja');
+  const withoutA = DB.filter(e => e.anschreiben === 'nein');
+
+  const rate = arr => {
+    if (!arr.length) return null;
+    const invited = arr.filter(e => (e.gespraeche || []).length >= 1).length;
+    return Math.round(invited / arr.length * 100);
+  };
+
+  const rWith = rate(withA);
+  const rWithout = rate(withoutA);
+
+  if (rWith === null && rWithout === null) {
+    el.innerHTML = `<div style="color:var(--text3);font-size:14px;padding:12px 0">${LANG==='en'?'No data yet — add cover letter info to your applications.':'Noch keine Daten — trage bei deinen Bewerbungen ein, ob du ein Anschreiben mitgeschickt hast.'}</div>`;
+    return;
+  }
+
+  const rows = [
+    { label: LANG==='en'?'With ('+withA.length+')':'Mit ('+withA.length+')', n: withA.length, rate: rWith, color: 'var(--accent)' },
+    { label: LANG==='en'?'Without ('+withoutA.length+')':'Ohne ('+withoutA.length+')', n: withoutA.length, rate: rWithout, color: 'var(--accent2)' },
+  ];
+
+  el.innerHTML = rows.map(r => {
+    if (r.rate === null) return `
+    <div class="funnel-row">
+      <span class="funnel-label">${r.label}</span>
+      <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:0%;background:${r.color}"><span>0</span></div></div>
+      <span class="funnel-pct" style="color:var(--text3)">—</span>
+    </div>`;
+    return `
+    <div class="funnel-row">
+      <span class="funnel-label">${r.label}</span>
+      <div class="funnel-bar-wrap">
+        <div class="funnel-bar" style="width:${r.rate}%;background:${r.color}">
+          <span>${Math.round(r.n * r.rate / 100)}</span>
+        </div>
+      </div>
+      <span class="funnel-pct">${r.rate}%</span>
+    </div>`;
+  }).join('');
+}
+
+function openCvModal(cv) {
+  const entries = DB.filter(e => e.cv === cv);
+  const withG = entries.filter(e => (e.gespraeche||[]).length >= 1);
+  const rate = entries.length ? Math.round(withG.length/entries.length*100) : 0;
+  const rateColor = rate>=40?'var(--green)':rate>=20?'var(--yellow)':'var(--text3)';
+  document.getElementById('cvModalTitle').textContent = 'v'+cv;
+  document.getElementById('cvModalStats').innerHTML = entries.length+' Bew. · '+withG.length+' Gesp. · <span style="color:'+rateColor+';font-weight:700">'+rate+'%</span>';
+  document.getElementById('cvModalList').innerHTML = entries.length
+    ? entries.map(e => {
+        const ok = (e.gespraeche||[]).length>=1;
+        return '<div class="cv-modal-row '+(ok?'success':'no-success')+'" onclick="closeCvModal();openModal('+e.id+')">'
+          +'<div><div class="cv-modal-stelle">'+(e.stelle||'—')+'</div><div class="cv-modal-unternehmen">'+(e.unternehmen||'—')+'</div></div>'
+          +'<span class="cv-modal-badge '+(ok?'badge-success':'badge-fail')+'">'+(ok?'✓ Gespräch':'— Kein Gespräch')+'</span></div>';
+      }).join('')
+    : '<div style="color:var(--text3);font-size:14px;padding:12px 0">'+t('no_entries')+'</div>';
+  document.getElementById('cvDetailModal').classList.add('open');
+}
+function closeCvModal(e) {
+  if (e && e.target !== document.getElementById('cvDetailModal')) return;
+  document.getElementById('cvDetailModal').classList.remove('open');
+}
+function openListModal(type, minStufe) {
+  let entries=[], title='', stats='';
+  if (type==='gespraech') {
+    entries=DB.filter(e=>(e.gespraeche||[]).length>=1);
+    title=LANG==='en'?'With Interview':'Mit Gespräch';
+    stats=entries.length+' Bewerbungen';
+  } else if (type==='ghosting') {
+    entries=DB.filter(e=>!e.erstreaktion&&(!e.gespraeche||!e.gespraeche.length)&&e.status!=='Gespräch'&&e.status!=='Geschlossen');
+    title='Ghosting';
+    stats=entries.length+(LANG==='en'?' without response':' ohne Reaktion');
+  } else if (type==='stufe') {
+    entries=DB.filter(e=>(e.gespraeche||[]).length>=minStufe);
+    title='≥'+minStufe+' Gespräch'+(minStufe>1?'e':'');
+    stats=entries.length+' Bewerbungen';
+  }
+  document.getElementById('listModalTitle').textContent=title;
+  document.getElementById('listModalStats').innerHTML=stats;
+  document.getElementById('listModalList').innerHTML=entries.length
+    ? entries.map(e=>{
+        const ok=(e.gespraeche||[]).length>=1;
+        const stufen=e.gespraeche&&e.gespraeche.length?e.gespraeche.map(g=>g.stufe||'?').join(' → '):null;
+        return '<div class="cv-modal-row" onclick="closeListModal();openModal('+e.id+')">'
+          +'<div><div class="cv-modal-stelle">'+(e.stelle||'—')+'</div>'
+          +'<div class="cv-modal-unternehmen">'+(e.unternehmen||'—')+(stufen?' · <span style="color:var(--text3);font-size:12px">'+stufen+'</span>':'')+'</div></div>'
+          +'<span class="cv-modal-badge '+(ok?'badge-success':'badge-fail')+'">'+(ok?'✓ '+e.gespraeche.length+' Gesp.':'— Kein Gesp.')+'</span></div>';
+      }).join('')
+    : '<div style="color:var(--text3);font-size:14px;padding:12px 0">'+t('no_entries')+'</div>';
+  document.getElementById('listModal').classList.add('open');
+}
+function closeListModal(e) {
+  if (e && e.target !== document.getElementById('listModal')) return;
+  document.getElementById('listModal').classList.remove('open');
+}
 function renderBegruendungen() {
   const counts = {};
   DB.forEach(e => {
@@ -2783,6 +2923,7 @@ function openModal(id) {
     <div class="detail-item"><div class="detail-label">${t('waiting_time')}</div><div class="detail-value" style="color:var(--${timerColor(days)})">${days !== null ? days + ' ' + t('days_label') : '—'}</div></div>
     ${dl('label_fit', e.fit || '—')}
     ${dl('label_cv', e.cv || '—')}
+    ${dl('label_anschreiben', e.anschreiben === 'ja' ? (LANG==='en'?'Yes':'Ja') : e.anschreiben === 'nein' ? (LANG==='en'?'No':'Nein') : '—')}
     ${e.gehalt ? dl('label_salary', `<span style="color:var(--green)">${esc(e.gehalt)}</span>`) : ''}
     ${e.naechsterSchritt ? `<div class="detail-item" style="grid-column:1/-1"><div class="detail-label">${t('label_next_step')}</div><div class="detail-value" style="color:var(--yellow)">${esc(e.naechsterSchritt)}${e.faelligAm ? ' · ' + (LANG==='en'?'due ':'fällig ') + fmt(e.faelligAm) : ''}</div></div>` : ''}
     <div class="detail-item" style="grid-column:1/-1"><div class="detail-label">${t('label_reason')}</div><div class="detail-value">${esc(e.begruendung) || '—'}</div></div>
@@ -2862,6 +3003,12 @@ function startModalEdit() {
         <input type="text" class="form-input" id="me-ansprechpartner" value="${e.ansprechpartner || ''}"></div>
       <div><label class="form-label" data-langkey="label_cv">CV-Version</label>
         <select class="form-select" id="me-cv">${cvOptions}</select></div>
+      <div><label class="form-label" data-langkey="label_anschreiben">Anschreiben</label>
+        <select class="form-select" id="me-anschreiben">
+          <option value="">${t('opt_unknown')}</option>
+          <option value="ja">${t('opt_yes')}</option>
+          <option value="nein">${t('opt_no')}</option>
+        </select></div>
       <div><label class="form-label" data-langkey="label_next_step">Nächster Schritt</label>
         <input type="text" class="form-input" id="me-naechster-schritt" value="${e.naechsterSchritt || ''}"></div>
       <div><label class="form-label" data-langkey="label_due">Fällig am</label>
@@ -2883,6 +3030,8 @@ function startModalEdit() {
 
   // Set CV and Fit values
   document.getElementById('me-cv').value = e.cv || '';
+  document.getElementById('me-anschreiben').value = e.anschreiben || '';
+  setTimeout(updateSelectColors, 0);
   modalEditFit = e.fit || 0;
   setModalFit(modalEditFit, true);
 
@@ -2925,7 +3074,7 @@ function saveModalEdit() {
   e.vermittler = document.getElementById('me-vermittler').value;
   e.ansprechpartner = document.getElementById('me-ansprechpartner').value.trim();
   e.cv = document.getElementById('me-cv').value;
-  e.naechsterSchritt = document.getElementById('me-naechster-schritt').value.trim();
+  e.anschreiben = document.getElementById('me-anschreiben')?.value || '';
   e.faelligAm = document.getElementById('me-faellig').value;
   e.gehalt = document.getElementById('me-gehalt').value.trim();
   e.begruendung = document.getElementById('me-begruendung').value.trim();
@@ -3010,6 +3159,7 @@ function saveEntry() {
     status: document.getElementById('f-status').value,
     erstreaktion: document.getElementById('f-erstreaktion').value,
     cv: document.getElementById('f-cv').value,
+    anschreiben: document.getElementById('f-anschreiben').value,
     begruendung: document.getElementById('f-begruendung').value.trim(),
     link: document.getElementById('f-link').value.trim(),
     fit: selectedFit,
@@ -3055,6 +3205,8 @@ function resetForm() {
   document.getElementById('f-absagegrund').value = '';
   document.getElementById('f-status').value = 'Warten';
   document.getElementById('f-cv').value = '';
+  document.getElementById('f-anschreiben').value = '';
+  setTimeout(updateSelectColors, 0);
   document.getElementById('f-vermittler').value = '';
   selectedFit = 0;
   [1,2,3].forEach(i => document.getElementById(`fit-${i}`).className = 'fit-btn');
@@ -3380,7 +3532,7 @@ function saveQuickNotiz() {
 // ═══════════════════════════════════════════════
 
 function exportCSV() {
-  const headers = ['ID', t('col_position'), t('label_company'), t('col_date'), t('label_location'), t('label_status'), LANG==='en'?'Highest Stage':'Höchste Stufe', t('label_reaction'), LANG==='en'?'Channel':'Vermittler', t('label_contact'), t('col_fit'), t('label_cv'), t('label_next_step'), t('label_due'), t('label_reason'), LANG==='en'?'Archived':'Archiviert'];
+  const headers = ['ID', t('col_position'), t('label_company'), t('col_date'), t('label_location'), t('label_status'), LANG==='en'?'Highest Stage':'Höchste Stufe', t('label_reaction'), LANG==='en'?'Channel':'Vermittler', t('label_contact'), t('col_fit'), t('label_cv'), t('label_next_step'), t('label_due'), t('label_reason'), LANG==='en'?'Archived':'Archiviert', LANG==='en'?'Cover Letter':'Anschreiben'];
   const statusMap = {'Warten':t('status_waiting'),'Gespräch':t('status_interview'),'Geschlossen':t('status_closed'),'Abgesagt':t('status_cancelled')};
   const rows = DB.map(e => [
     e.id,
@@ -3398,7 +3550,8 @@ function exportCSV() {
     e.naechsterSchritt || '',
     e.faelligAm || '',
     e.begruendung || '',
-    e.archiviert ? (LANG==='en'?'Yes':'Ja') : (LANG==='en'?'No':'Nein')
+    e.archiviert ? (LANG==='en'?'Yes':'Ja') : (LANG==='en'?'No':'Nein'),
+    e.anschreiben === 'ja' ? (LANG==='en'?'Yes':'Ja') : e.anschreiben === 'nein' ? (LANG==='en'?'No':'Nein') : ''
   ].map(v => `"${String(v || '').replace(/"/g, '""')}"`));
 
   const csv = [headers.map(h => `"${h}"`).join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -3643,5 +3796,20 @@ function boot() {
 
 boot();
 </script>
+
+<div class="modal-overlay" id="cvDetailModal" onclick="closeCvModal(event)">
+  <div class="modal-box" style="max-width:580px;width:90%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:28px;position:relative;">
+    <button class="modal-close" style="position:absolute;top:16px;right:28px;" onclick="closeCvModal()">×</button>
+    <div class="cv-modal-header"><div class="cv-modal-title" id="cvModalTitle"></div><div class="cv-modal-stats" id="cvModalStats"></div></div>
+    <div class="cv-modal-list" id="cvModalList"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="listModal" onclick="closeListModal(event)">
+  <div class="modal-box" style="max-width:580px;width:90%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);padding:28px;position:relative;">
+    <button class="modal-close" style="position:absolute;top:16px;right:28px;" onclick="closeListModal()">×</button>
+    <div class="cv-modal-header"><div class="cv-modal-title" id="listModalTitle"></div><div class="cv-modal-stats" id="listModalStats"></div></div>
+    <div class="cv-modal-list" id="listModalList"></div>
+  </div>
+</div>
 </body>
 </html>
